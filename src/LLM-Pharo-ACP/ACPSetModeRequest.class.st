@@ -1,0 +1,61 @@
+Class {
+	#name : 'ACPSetModeRequest',
+	#superclass : 'ACPMessage',
+	#instVars : [
+		'sessionId',
+		'modeId'
+	],
+	#category : 'LLM-Pharo-ACP-Messages',
+	#package : 'LLM-Pharo-ACP',
+	#tag : 'Messages'
+}
+
+{ #category : 'accessing' }
+ACPSetModeRequest >> method [
+
+	^ 'session/set_mode'
+]
+
+{ #category : 'accessing' }
+ACPSetModeRequest >> sessionId [
+
+	^ sessionId
+]
+
+{ #category : 'accessing' }
+ACPSetModeRequest >> sessionId: aString [
+
+	sessionId := aString
+]
+
+{ #category : 'accessing' }
+ACPSetModeRequest >> modeId [
+
+	^ modeId
+]
+
+{ #category : 'accessing' }
+ACPSetModeRequest >> modeId: aString [
+
+	modeId := aString
+]
+
+{ #category : 'testing' }
+ACPSetModeRequest >> isNotification [
+
+	^ true
+]
+
+{ #category : 'serialization' }
+ACPSetModeRequest >> asJSON [
+
+	| json params |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	json at: 'method' put: self method.
+	params := Dictionary new.
+	params at: 'sessionId' put: sessionId.
+	params at: 'modeId' put: modeId.
+	json at: 'params' put: params.
+	^ json
+]
