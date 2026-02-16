@@ -12,66 +12,6 @@ Class {
 	#tag : 'Messages'
 }
 
-{ #category : 'accessing' }
-ACPReadFileRequest >> method [
-
-	^ 'fs/read_text_file'
-]
-
-{ #category : 'accessing' }
-ACPReadFileRequest >> sessionId [
-
-	^ sessionId
-]
-
-{ #category : 'accessing' }
-ACPReadFileRequest >> sessionId: aString [
-
-	sessionId := aString
-]
-
-{ #category : 'accessing' }
-ACPReadFileRequest >> path [
-
-	^ path
-]
-
-{ #category : 'accessing' }
-ACPReadFileRequest >> path: aString [
-
-	path := aString
-]
-
-{ #category : 'accessing' }
-ACPReadFileRequest >> startLine [
-
-	^ startLine
-]
-
-{ #category : 'accessing' }
-ACPReadFileRequest >> startLine: anInteger [
-
-	startLine := anInteger
-]
-
-{ #category : 'accessing' }
-ACPReadFileRequest >> lineLimit [
-
-	^ lineLimit
-]
-
-{ #category : 'accessing' }
-ACPReadFileRequest >> lineLimit: anInteger [
-
-	lineLimit := anInteger
-]
-
-{ #category : 'testing' }
-ACPReadFileRequest >> isRequest [
-
-	^ true
-]
-
 { #category : 'serialization' }
 ACPReadFileRequest >> asJSON [
 
@@ -87,4 +27,64 @@ ACPReadFileRequest >> asJSON [
 	lineLimit ifNotNil: [ params at: 'lineLimit' put: lineLimit ].
 	json at: 'params' put: params.
 	^ json
+]
+
+{ #category : 'testing' }
+ACPReadFileRequest >> isRequest [
+
+	^ true
+]
+
+{ #category : 'accessing' }
+ACPReadFileRequest >> lineLimit [
+
+	^ lineLimit
+]
+
+{ #category : 'accessing' }
+ACPReadFileRequest >> lineLimit: anInteger [
+
+	lineLimit := anInteger
+]
+
+{ #category : 'accessing' }
+ACPReadFileRequest >> method [
+
+	^ 'fs/read_text_file'
+]
+
+{ #category : 'accessing' }
+ACPReadFileRequest >> path [
+
+	^ path
+]
+
+{ #category : 'accessing' }
+ACPReadFileRequest >> path: aString [
+
+	path := aString
+]
+
+{ #category : 'accessing' }
+ACPReadFileRequest >> sessionId [
+
+	^ sessionId
+]
+
+{ #category : 'accessing' }
+ACPReadFileRequest >> sessionId: aString [
+
+	sessionId := aString
+]
+
+{ #category : 'accessing' }
+ACPReadFileRequest >> startLine [
+
+	^ startLine
+]
+
+{ #category : 'accessing' }
+ACPReadFileRequest >> startLine: anInteger [
+
+	startLine := anInteger
 ]

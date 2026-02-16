@@ -9,24 +9,6 @@ Class {
 	#tag : 'Messages'
 }
 
-{ #category : 'accessing' }
-ACPPermissionResponse >> selectedOptionId [
-
-	^ selectedOptionId
-]
-
-{ #category : 'accessing' }
-ACPPermissionResponse >> selectedOptionId: aString [
-
-	selectedOptionId := aString
-]
-
-{ #category : 'testing' }
-ACPPermissionResponse >> isResponse [
-
-	^ true
-]
-
 { #category : 'serialization' }
 ACPPermissionResponse >> asJSON [
 
@@ -38,4 +20,22 @@ ACPPermissionResponse >> asJSON [
 	result at: 'selectedOptionId' put: selectedOptionId.
 	json at: 'result' put: result.
 	^ json
+]
+
+{ #category : 'testing' }
+ACPPermissionResponse >> isResponse [
+
+	^ true
+]
+
+{ #category : 'accessing' }
+ACPPermissionResponse >> selectedOptionId [
+
+	^ selectedOptionId
+]
+
+{ #category : 'accessing' }
+ACPPermissionResponse >> selectedOptionId: aString [
+
+	selectedOptionId := aString
 ]

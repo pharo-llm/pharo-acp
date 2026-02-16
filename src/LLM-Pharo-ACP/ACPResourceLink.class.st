@@ -13,53 +13,18 @@ Class {
 	#tag : 'Content'
 }
 
-{ #category : 'accessing' }
-ACPResourceLink >> uri [
+{ #category : 'serialization' }
+ACPResourceLink >> asJSON [
 
-	^ uri
-]
-
-{ #category : 'accessing' }
-ACPResourceLink >> uri: aString [
-
-	aString ifNil: [ ACPValidationError signal: 'Resource link URI cannot be nil' ].
-	uri := aString
-]
-
-{ #category : 'accessing' }
-ACPResourceLink >> name [
-
-	^ name
-]
-
-{ #category : 'accessing' }
-ACPResourceLink >> name: aString [
-
-	name := aString
-]
-
-{ #category : 'accessing' }
-ACPResourceLink >> mimeType [
-
-	^ mimeType
-]
-
-{ #category : 'accessing' }
-ACPResourceLink >> mimeType: aString [
-
-	mimeType := aString
-]
-
-{ #category : 'accessing' }
-ACPResourceLink >> size [
-
-	^ size
-]
-
-{ #category : 'accessing' }
-ACPResourceLink >> size: anInteger [
-
-	size := anInteger
+	| json |
+	json := Dictionary new.
+	json at: 'type' put: 'resource_link'.
+	json at: 'uri' put: uri.
+	name ifNotNil: [ json at: 'name' put: name ].
+	mimeType ifNotNil: [ json at: 'mimeType' put: mimeType ].
+	size ifNotNil: [ json at: 'size' put: size ].
+	description ifNotNil: [ json at: 'description' put: description ].
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -75,21 +40,56 @@ ACPResourceLink >> description: aString [
 ]
 
 { #category : 'accessing' }
+ACPResourceLink >> mimeType [
+
+	^ mimeType
+]
+
+{ #category : 'accessing' }
+ACPResourceLink >> mimeType: aString [
+
+	mimeType := aString
+]
+
+{ #category : 'accessing' }
+ACPResourceLink >> name [
+
+	^ name
+]
+
+{ #category : 'accessing' }
+ACPResourceLink >> name: aString [
+
+	name := aString
+]
+
+{ #category : 'accessing' }
+ACPResourceLink >> size [
+
+	^ size
+]
+
+{ #category : 'accessing' }
+ACPResourceLink >> size: anInteger [
+
+	size := anInteger
+]
+
+{ #category : 'accessing' }
 ACPResourceLink >> type [
 
 	^ 'resource_link'
 ]
 
-{ #category : 'serialization' }
-ACPResourceLink >> asJSON [
+{ #category : 'accessing' }
+ACPResourceLink >> uri [
 
-	| json |
-	json := Dictionary new.
-	json at: 'type' put: 'resource_link'.
-	json at: 'uri' put: uri.
-	name ifNotNil: [ json at: 'name' put: name ].
-	mimeType ifNotNil: [ json at: 'mimeType' put: mimeType ].
-	size ifNotNil: [ json at: 'size' put: size ].
-	description ifNotNil: [ json at: 'description' put: description ].
-	^ json
+	^ uri
+]
+
+{ #category : 'accessing' }
+ACPResourceLink >> uri: aString [
+
+	aString ifNil: [ ACPValidationError signal: 'Resource link URI cannot be nil' ].
+	uri := aString
 ]

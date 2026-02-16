@@ -14,39 +14,27 @@ Class {
 	#tag : 'Core'
 }
 
-{ #category : 'initialization' }
-ACPSession >> initialize [
+{ #category : 'operations' }
+ACPSession >> cancel [
+	"Cancel the current operation"
 
-	super initialize.
-	updateCallbacks := OrderedCollection new.
-	history := OrderedCollection new.
-	closed := false
+	| notification |
+	notification := ACPCancelRequest new
+		                sessionId: sessionId;
+		                yourself.
+	connection sendNotification: notification
 ]
 
-{ #category : 'accessing' }
-ACPSession >> sessionId [
+{ #category : 'history' }
+ACPSession >> clearHistory [
 
-	^ sessionId
+	history removeAll
 ]
 
-{ #category : 'accessing' }
-ACPSession >> sessionId: aString [
+{ #category : 'lifecycle' }
+ACPSession >> close [
 
-	(aString isNil or: [ aString isEmpty ]) ifTrue: [
-		ACPValidationError signal: 'Session ID must be a non-empty string' ].
-	sessionId := aString
-]
-
-{ #category : 'accessing' }
-ACPSession >> cwd [
-
-	^ cwd
-]
-
-{ #category : 'accessing' }
-ACPSession >> cwd: aPathOrString [
-
-	cwd := aPathOrString
+	closed := true
 ]
 
 { #category : 'accessing' }
@@ -66,21 +54,69 @@ ACPSession >> connection: anACPConnection [
 ]
 
 { #category : 'accessing' }
+ACPSession >> cwd [
+
+	^ cwd
+]
+
+{ #category : 'accessing' }
+ACPSession >> cwd: aPathOrString [
+
+	cwd := aPathOrString
+]
+
+{ #category : 'private' }
+ACPSession >> handleUpdate: anUpdate [
+	"Dispatch update to all registered callbacks"
+
+	updateCallbacks do: [ :callback | callback value: anUpdate ]
+]
+
+{ #category : 'accessing' }
 ACPSession >> history [
 
 	^ history
+]
+
+{ #category : 'initialization' }
+ACPSession >> initialize [
+
+	super initialize.
+	updateCallbacks := OrderedCollection new.
+	history := OrderedCollection new.
+	closed := false
+]
+
+{ #category : 'testing' }
+ACPSession >> isClosed [
+
+	^ closed ifNil: [ false ]
+]
+
+{ #category : 'testing' }
+ACPSession >> isOpen [
+
+	^ self isClosed not
+]
+
+{ #category : 'updates' }
+ACPSession >> onUpdate: aBlock [
+	"Register a callback for session updates"
+
+	updateCallbacks add: aBlock
 ]
 
 { #category : 'prompts' }
 ACPSession >> sendPrompt: contentBlocks [
 	"Send a prompt with content blocks and return the response"
 
+	| request response |
 	closed ifTrue: [
 		ACPSessionClosedError signal: 'Session is closed' ].
 	(contentBlocks isNil or: [ contentBlocks isEmpty ]) ifTrue: [
 		ACPValidationError signal: 'Prompt content cannot be empty' ].
 
-	| request response |
+
 	request := ACPPromptRequest new
 		           sessionId: sessionId;
 		           prompt: contentBlocks;
@@ -91,44 +127,18 @@ ACPSession >> sendPrompt: contentBlocks [
 	^ response
 ]
 
-{ #category : 'updates' }
-ACPSession >> onUpdate: aBlock [
-	"Register a callback for session updates"
+{ #category : 'accessing' }
+ACPSession >> sessionId [
 
-	updateCallbacks add: aBlock
+	^ sessionId
 ]
 
-{ #category : 'private' }
-ACPSession >> handleUpdate: anUpdate [
-	"Dispatch update to all registered callbacks"
+{ #category : 'accessing' }
+ACPSession >> sessionId: aString [
 
-	updateCallbacks do: [ :callback | callback value: anUpdate ]
-]
-
-{ #category : 'operations' }
-ACPSession >> cancel [
-	"Cancel the current operation"
-
-	| notification |
-	notification := ACPCancelRequest new
-		                sessionId: sessionId;
-		                yourself.
-	connection sendNotification: notification
-]
-
-{ #category : 'operations' }
-ACPSession >> setMode: aModeId [
-	"Change the session mode"
-
-	(aModeId isNil or: [ aModeId isEmpty ]) ifTrue: [
-		ACPValidationError signal: 'Mode ID must be a non-empty string' ].
-
-	| notification |
-	notification := ACPSetModeRequest new
-		                sessionId: sessionId;
-		                modeId: aModeId;
-		                yourself.
-	connection sendNotification: notification
+	(aString isNil or: [ aString isEmpty ]) ifTrue: [
+		ACPValidationError signal: 'Session ID must be a non-empty string' ].
+	sessionId := aString
 ]
 
 { #category : 'operations' }
@@ -144,26 +154,16 @@ ACPSession >> setConfigOption: anOption value: aValue [
 	connection sendNotification: notification
 ]
 
-{ #category : 'history' }
-ACPSession >> clearHistory [
+{ #category : 'operations' }
+ACPSession >> setMode: aModeId [
 
-	history removeAll
-]
+	| notification |
+	(aModeId isNil or: [ aModeId isEmpty ]) ifTrue: [
+		ACPValidationError signal: 'Mode ID must be a non-empty string' ].
 
-{ #category : 'lifecycle' }
-ACPSession >> close [
-
-	closed := true
-]
-
-{ #category : 'testing' }
-ACPSession >> isClosed [
-
-	^ closed ifNil: [ false ]
-]
-
-{ #category : 'testing' }
-ACPSession >> isOpen [
-
-	^ self isClosed not
+	notification := ACPSetModeRequest new
+		                sessionId: sessionId;
+		                modeId: aModeId;
+		                yourself.
+	connection sendNotification: notification
 ]

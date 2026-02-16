@@ -7,12 +7,12 @@ Class {
 }
 
 { #category : 'instance creation' }
-ACPContentBlock class >> fromJSON: aString [
-	"Deserialize a content block from a JSON string"
+ACPContentBlock class >> arrayFromJSON: aString [
+	"Deserialize an array of content blocks from a JSON string"
 
-	| dict |
-	dict := STONJSON fromString: aString.
-	^ self fromDictionary: dict
+	| array |
+	array := STONJSON fromString: aString.
+	^ array collect: [ :dict | self fromDictionary: dict ]
 ]
 
 { #category : 'instance creation' }
@@ -71,23 +71,23 @@ ACPContentBlock class >> fromDictionary: aDictionary [
 ]
 
 { #category : 'instance creation' }
-ACPContentBlock class >> arrayFromJSON: aString [
-	"Deserialize an array of content blocks from a JSON string"
+ACPContentBlock class >> fromJSON: aString [
+	"Deserialize a content block from a JSON string"
 
-	| array |
-	array := STONJSON fromString: aString.
-	^ array collect: [ :dict | self fromDictionary: dict ]
+	| dict |
+	dict := STONJSON fromString: aString.
+	^ self fromDictionary: dict
 ]
 
-{ #category : 'accessing' }
-ACPContentBlock >> type [
+{ #category : 'serialization' }
+ACPContentBlock >> asJSON [
 	"Subclasses must override"
 
 	^ self subclassResponsibility
 ]
 
-{ #category : 'serialization' }
-ACPContentBlock >> asJSON [
+{ #category : 'accessing' }
+ACPContentBlock >> type [
 	"Subclasses must override"
 
 	^ self subclassResponsibility

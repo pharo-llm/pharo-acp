@@ -12,6 +12,21 @@ Class {
 	#tag : 'Errors'
 }
 
+{ #category : 'serialization' }
+ACPError >> asJSON [
+
+	| json errorDict |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	errorDict := Dictionary new.
+	errorDict at: 'code' put: code.
+	errorDict at: 'message' put: errorMessage.
+	data ifNotNil: [ errorDict at: 'data' put: data ].
+	json at: 'error' put: errorDict.
+	^ json
+]
+
 { #category : 'accessing' }
 ACPError >> code [
 
@@ -48,6 +63,12 @@ ACPError >> id: anObject [
 	id := anObject
 ]
 
+{ #category : 'testing' }
+ACPError >> isError [
+
+	^ true
+]
+
 { #category : 'accessing' }
 ACPError >> message [
 
@@ -59,25 +80,4 @@ ACPError >> message: aString [
 
 	errorMessage := aString.
 	self messageText: aString
-]
-
-{ #category : 'serialization' }
-ACPError >> asJSON [
-
-	| json errorDict |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	errorDict := Dictionary new.
-	errorDict at: 'code' put: code.
-	errorDict at: 'message' put: errorMessage.
-	data ifNotNil: [ errorDict at: 'data' put: data ].
-	json at: 'error' put: errorDict.
-	^ json
-]
-
-{ #category : 'testing' }
-ACPError >> isError [
-
-	^ true
 ]

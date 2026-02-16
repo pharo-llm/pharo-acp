@@ -10,34 +10,10 @@ Class {
 		'sessionStore',
 		'terminalStore'
 	],
-	#category : 'LLM-Pharo-ACP-Transport',
-	#package : 'LLM-Pharo-ACP',
-	#tag : 'Transport'
+	#category : 'LLM-Pharo-ACP-Tests-Mock',
+	#package : 'LLM-Pharo-ACP-Tests',
+	#tag : 'Mock'
 }
-
-{ #category : 'initialization' }
-ACPMockTransport >> initialize [
-
-	super initialize.
-	sentMessages := OrderedCollection new.
-	responseQueue := OrderedCollection new.
-	autoRespond := false.
-	sessionCounter := 0.
-	sessionStore := Dictionary new.
-	terminalStore := Dictionary new
-]
-
-{ #category : 'accessing' }
-ACPMockTransport >> sentMessages [
-
-	^ sentMessages
-]
-
-{ #category : 'accessing' }
-ACPMockTransport >> responseQueue [
-
-	^ responseQueue
-]
 
 { #category : 'accessing' }
 ACPMockTransport >> autoRespond [
@@ -49,41 +25,6 @@ ACPMockTransport >> autoRespond [
 ACPMockTransport >> autoRespond: aBoolean [
 
 	autoRespond := aBoolean
-]
-
-{ #category : 'accessing' }
-ACPMockTransport >> responseHandler [
-
-	^ responseHandler
-]
-
-{ #category : 'accessing' }
-ACPMockTransport >> responseHandler: aBlock [
-
-	responseHandler := aBlock
-]
-
-{ #category : 'accessing' }
-ACPMockTransport >> sessionStore [
-
-	^ sessionStore
-]
-
-{ #category : 'operations' }
-ACPMockTransport >> send: aMessage [
-
-	sentMessages add: aMessage.
-	(autoRespond and: [ aMessage isKindOf: ACPMessage ]) ifTrue: [
-		aMessage id ifNotNil: [
-			responseQueue add: (self generateResponseFor: aMessage) ] ]
-]
-
-{ #category : 'private' }
-ACPMockTransport >> generateResponseFor: aRequest [
-	"Generate a mock response for a request"
-
-	responseHandler ifNotNil: [ ^ responseHandler value: aRequest ].
-	^ self defaultResponseFor: aRequest
 ]
 
 { #category : 'private' }
@@ -103,6 +44,64 @@ ACPMockTransport >> defaultResponseFor: aRequest [
 	method = 'terminal/release' ifTrue: [ ^ self mockTerminalReleaseResponse: aRequest ].
 	method = 'session/request_permission' ifTrue: [ ^ self mockPermissionResponse: aRequest ].
 	^ self mockGenericResponse: aRequest
+]
+
+{ #category : 'private' }
+ACPMockTransport >> generateResponseFor: aRequest [
+	"Generate a mock response for a request"
+
+	responseHandler ifNotNil: [ ^ responseHandler value: aRequest ].
+	^ self defaultResponseFor: aRequest
+]
+
+{ #category : 'testing' }
+ACPMockTransport >> hasResponse [
+
+	^ responseQueue notEmpty
+]
+
+{ #category : 'initialization' }
+ACPMockTransport >> initialize [
+
+	super initialize.
+	sentMessages := OrderedCollection new.
+	responseQueue := OrderedCollection new.
+	autoRespond := false.
+	sessionCounter := 0.
+	sessionStore := Dictionary new.
+	terminalStore := Dictionary new
+]
+
+{ #category : 'mock responses' }
+ACPMockTransport >> mockCreateTerminalResponse: aRequest [
+
+	| response termId |
+	sessionCounter := sessionCounter + 1.
+	termId := 'term_mock' , sessionCounter asString.
+	"Store terminal info for later use"
+	terminalStore at: termId put: (Dictionary new
+			 at: 'command' put: aRequest command;
+			 at: 'args' put: aRequest args;
+			 at: 'cwd' put: aRequest cwd;
+			 yourself).
+	response := ACPGenericResponse new.
+	response id: aRequest id.
+	response result: (Dictionary new
+			 at: 'terminalId' put: termId;
+			 yourself).
+	^ response
+]
+
+{ #category : 'mock responses' }
+ACPMockTransport >> mockGenericResponse: aRequest [
+
+	| response |
+	response := ACPGenericResponse new.
+	response id: aRequest id.
+	response result: (Dictionary new
+			 at: 'ok' put: true;
+			 yourself).
+	^ response
 ]
 
 { #category : 'mock responses' }
@@ -138,6 +137,23 @@ ACPMockTransport >> mockInitializeResponse: aRequest [
 ]
 
 { #category : 'mock responses' }
+ACPMockTransport >> mockLoadSessionResponse: aRequest [
+
+	| response |
+	response := ACPGenericResponse new.
+	response id: aRequest id.
+	response result: (Dictionary new
+			 at: 'sessionId' put: aRequest sessionId;
+			 at: 'loaded' put: true;
+			 yourself).
+	sessionStore at: aRequest sessionId ifAbsent: [
+		sessionStore at: aRequest sessionId put: (Dictionary new
+				 at: 'history' put: (OrderedCollection with: 'loaded session');
+				 yourself) ].
+	^ response
+]
+
+{ #category : 'mock responses' }
 ACPMockTransport >> mockNewSessionResponse: aRequest [
 
 	| response sid |
@@ -154,6 +170,16 @@ ACPMockTransport >> mockNewSessionResponse: aRequest [
 ]
 
 { #category : 'mock responses' }
+ACPMockTransport >> mockPermissionResponse: aRequest [
+
+	| response |
+	response := ACPPermissionResponse new.
+	response id: aRequest id.
+	response selectedOptionId: 'allow_once'.
+	^ response
+]
+
+{ #category : 'mock responses' }
 ACPMockTransport >> mockPromptResponse: aRequest [
 
 	| response |
@@ -163,23 +189,6 @@ ACPMockTransport >> mockPromptResponse: aRequest [
 	response := ACPPromptResponse new.
 	response id: aRequest id.
 	response stopReason: 'end_turn'.
-	^ response
-]
-
-{ #category : 'mock responses' }
-ACPMockTransport >> mockLoadSessionResponse: aRequest [
-
-	| response |
-	response := ACPGenericResponse new.
-	response id: aRequest id.
-	response result: (Dictionary new
-			 at: 'sessionId' put: aRequest sessionId;
-			 at: 'loaded' put: true;
-			 yourself).
-	sessionStore at: aRequest sessionId ifAbsent: [
-		sessionStore at: aRequest sessionId put: (Dictionary new
-				 at: 'history' put: (OrderedCollection with: 'loaded session');
-				 yourself) ].
 	^ response
 ]
 
@@ -214,36 +223,13 @@ ACPMockTransport >> mockReadFileResponse: aRequest [
 ]
 
 { #category : 'mock responses' }
-ACPMockTransport >> mockWriteFileResponse: aRequest [
+ACPMockTransport >> mockTerminalReleaseResponse: aRequest [
 
-	| response fileRef |
-	response := ACPGenericResponse new.
-	response id: aRequest id.
-	fileRef := aRequest path asFileReference.
-	fileRef writeStreamDo: [ :stream |
-		stream nextPutAll: aRequest content ].
-	response result: (Dictionary new
-			 at: 'success' put: true;
-			 yourself).
-	^ response
-]
-
-{ #category : 'mock responses' }
-ACPMockTransport >> mockCreateTerminalResponse: aRequest [
-
-	| response termId |
-	sessionCounter := sessionCounter + 1.
-	termId := 'term_mock' , sessionCounter asString.
-	"Store terminal info for later use"
-	terminalStore at: termId put: (Dictionary new
-			 at: 'command' put: aRequest command;
-			 at: 'args' put: aRequest args;
-			 at: 'cwd' put: aRequest cwd;
-			 yourself).
+	| response |
 	response := ACPGenericResponse new.
 	response id: aRequest id.
 	response result: (Dictionary new
-			 at: 'terminalId' put: termId;
+			 at: 'released' put: true;
 			 yourself).
 	^ response
 ]
@@ -269,35 +255,16 @@ ACPMockTransport >> mockWaitForExitResponse: aRequest [
 ]
 
 { #category : 'mock responses' }
-ACPMockTransport >> mockTerminalReleaseResponse: aRequest [
+ACPMockTransport >> mockWriteFileResponse: aRequest [
 
-	| response |
+	| response fileRef |
 	response := ACPGenericResponse new.
 	response id: aRequest id.
+	fileRef := aRequest path asFileReference.
+	fileRef writeStreamDo: [ :stream |
+		stream nextPutAll: aRequest content ].
 	response result: (Dictionary new
-			 at: 'released' put: true;
-			 yourself).
-	^ response
-]
-
-{ #category : 'mock responses' }
-ACPMockTransport >> mockPermissionResponse: aRequest [
-
-	| response |
-	response := ACPPermissionResponse new.
-	response id: aRequest id.
-	response selectedOptionId: 'allow_once'.
-	^ response
-]
-
-{ #category : 'mock responses' }
-ACPMockTransport >> mockGenericResponse: aRequest [
-
-	| response |
-	response := ACPGenericResponse new.
-	response id: aRequest id.
-	response result: (Dictionary new
-			 at: 'ok' put: true;
+			 at: 'success' put: true;
 			 yourself).
 	^ response
 ]
@@ -310,8 +277,41 @@ ACPMockTransport >> nextResponse [
 	^ responseQueue removeFirst
 ]
 
-{ #category : 'testing' }
-ACPMockTransport >> hasResponse [
+{ #category : 'accessing' }
+ACPMockTransport >> responseHandler [
 
-	^ responseQueue notEmpty
+	^ responseHandler
+]
+
+{ #category : 'accessing' }
+ACPMockTransport >> responseHandler: aBlock [
+
+	responseHandler := aBlock
+]
+
+{ #category : 'accessing' }
+ACPMockTransport >> responseQueue [
+
+	^ responseQueue
+]
+
+{ #category : 'operations' }
+ACPMockTransport >> send: aMessage [
+
+	sentMessages add: aMessage.
+	(autoRespond and: [ aMessage isKindOf: ACPMessage ]) ifTrue: [
+		aMessage id ifNotNil: [
+			responseQueue add: (self generateResponseFor: aMessage) ] ]
+]
+
+{ #category : 'accessing' }
+ACPMockTransport >> sentMessages [
+
+	^ sentMessages
+]
+
+{ #category : 'accessing' }
+ACPMockTransport >> sessionStore [
+
+	^ sessionStore
 ]

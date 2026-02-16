@@ -8,9 +8,9 @@ Class {
 		'running',
 		'updateCallbacks'
 	],
-	#category : 'LLM-Pharo-ACP-Transport',
-	#package : 'LLM-Pharo-ACP',
-	#tag : 'Transport'
+	#category : 'LLM-Pharo-ACP-Tests-Mock',
+	#package : 'LLM-Pharo-ACP-Tests',
+	#tag : 'Mock'
 }
 
 { #category : 'initialization' }
@@ -26,28 +26,28 @@ ACPMockAgent >> initialize [
 ]
 
 { #category : 'accessing' }
-ACPMockAgent >> transport [
-
-	^ transport
-]
-
-{ #category : 'accessing' }
 ACPMockAgent >> receivedClientInfo [
 
 	^ receivedClientInfo
+]
+
+{ #category : 'private' }
+ACPMockAgent >> sendUpdate: aSessionId update: aDictionary [
+	"Send an update notification"
+
+	| notification |
+	notification := ACPSessionUpdate new
+		                sessionId: aSessionId;
+		                update: aDictionary;
+		                yourself.
+	"Store it so the connection can pick it up"
+	transport responseQueue add: notification
 ]
 
 { #category : 'accessing' }
 ACPMockAgent >> sessions [
 
 	^ sessions
-]
-
-{ #category : 'lifecycle' }
-ACPMockAgent >> stop [
-
-	running := false.
-	transport close
 ]
 
 { #category : 'private' }
@@ -67,6 +67,41 @@ ACPMockAgent >> setupMockBehavior [
 			self simulateModeUpdate: request ].
 		response := transport defaultResponseFor: request.
 		response ]
+]
+
+{ #category : 'private' }
+ACPMockAgent >> simulateModeUpdate: aRequest [
+	"Simulate mode change update"
+
+	self sendUpdate: aRequest sessionId update: (Dictionary new
+			 at: 'type' put: 'current_mode_update';
+			 at: 'modeId' put: aRequest modeId;
+			 yourself)
+]
+
+{ #category : 'private' }
+ACPMockAgent >> simulatePermissionRequest: aRequest [
+	"Simulate a permission request from agent to client"
+
+	| permRequest |
+	permRequest := ACPPermissionRequest new
+		                sessionId: aRequest sessionId;
+		                title: 'Permission Required';
+		                description: 'Allow file deletion?';
+		                options: {
+				                (ACPPermissionOption new
+					                 optionId: 'allow_once';
+					                 kind: 'allow';
+					                 label: 'Allow Once';
+					                 yourself).
+				                (ACPPermissionOption new
+					                 optionId: 'deny';
+					                 kind: 'deny';
+					                 label: 'Deny';
+					                 yourself) };
+		                yourself.
+	permRequest id: 9999.
+	transport responseQueue add: permRequest
 ]
 
 { #category : 'private' }
@@ -123,50 +158,15 @@ ACPMockAgent >> simulateToolCallUpdates: aRequest [
 			 yourself)
 ]
 
-{ #category : 'private' }
-ACPMockAgent >> simulatePermissionRequest: aRequest [
-	"Simulate a permission request from agent to client"
+{ #category : 'lifecycle' }
+ACPMockAgent >> stop [
 
-	| permRequest |
-	permRequest := ACPPermissionRequest new
-		                sessionId: aRequest sessionId;
-		                title: 'Permission Required';
-		                description: 'Allow file deletion?';
-		                options: {
-				                (ACPPermissionOption new
-					                 optionId: 'allow_once';
-					                 kind: 'allow';
-					                 label: 'Allow Once';
-					                 yourself).
-				                (ACPPermissionOption new
-					                 optionId: 'deny';
-					                 kind: 'deny';
-					                 label: 'Deny';
-					                 yourself) };
-		                yourself.
-	permRequest id: 9999.
-	transport responseQueue add: permRequest
+	running := false.
+	transport close
 ]
 
-{ #category : 'private' }
-ACPMockAgent >> simulateModeUpdate: aRequest [
-	"Simulate mode change update"
+{ #category : 'accessing' }
+ACPMockAgent >> transport [
 
-	self sendUpdate: aRequest sessionId update: (Dictionary new
-			 at: 'type' put: 'current_mode_update';
-			 at: 'modeId' put: aRequest modeId;
-			 yourself)
-]
-
-{ #category : 'private' }
-ACPMockAgent >> sendUpdate: aSessionId update: aDictionary [
-	"Send an update notification"
-
-	| notification |
-	notification := ACPSessionUpdate new
-		                sessionId: aSessionId;
-		                update: aDictionary;
-		                yourself.
-	"Store it so the connection can pick it up"
-	transport responseQueue add: notification
+	^ transport
 ]

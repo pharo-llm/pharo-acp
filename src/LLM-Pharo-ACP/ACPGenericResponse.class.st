@@ -9,22 +9,15 @@ Class {
 	#tag : 'Messages'
 }
 
-{ #category : 'accessing' }
-ACPGenericResponse >> result [
+{ #category : 'serialization' }
+ACPGenericResponse >> asJSON [
 
-	^ result
-]
-
-{ #category : 'accessing' }
-ACPGenericResponse >> result: aDictionary [
-
-	result := aDictionary
-]
-
-{ #category : 'testing' }
-ACPGenericResponse >> isResponse [
-
-	^ true
+	| json |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	json at: 'result' put: result.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -38,13 +31,20 @@ ACPGenericResponse >> doesNotUnderstand: aMessage [
 	^ super doesNotUnderstand: aMessage
 ]
 
-{ #category : 'serialization' }
-ACPGenericResponse >> asJSON [
+{ #category : 'testing' }
+ACPGenericResponse >> isResponse [
 
-	| json |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	json at: 'result' put: result.
-	^ json
+	^ true
+]
+
+{ #category : 'accessing' }
+ACPGenericResponse >> result [
+
+	^ result
+]
+
+{ #category : 'accessing' }
+ACPGenericResponse >> result: aDictionary [
+
+	result := aDictionary
 ]

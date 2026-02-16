@@ -10,6 +10,24 @@ Class {
 	#tag : 'Messages'
 }
 
+{ #category : 'serialization' }
+ACPGenericRequest >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	json at: 'method' put: methodName.
+	params ifNotNil: [ json at: 'params' put: params ].
+	^ json
+]
+
+{ #category : 'testing' }
+ACPGenericRequest >> isRequest [
+
+	^ true
+]
+
 { #category : 'accessing' }
 ACPGenericRequest >> method [
 
@@ -32,22 +50,4 @@ ACPGenericRequest >> params [
 ACPGenericRequest >> params: aDictionary [
 
 	params := aDictionary
-]
-
-{ #category : 'testing' }
-ACPGenericRequest >> isRequest [
-
-	^ true
-]
-
-{ #category : 'serialization' }
-ACPGenericRequest >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	json at: 'method' put: methodName.
-	params ifNotNil: [ json at: 'params' put: params ].
-	^ json
 ]

@@ -39,28 +39,32 @@ ACPToolCall class >> validStatuses [
 		  ValidStatuses := #( #pending #in_progress #completed ) ]
 ]
 
-{ #category : 'accessing' }
-ACPToolCall >> toolCallId [
+{ #category : 'serialization' }
+ACPToolCall >> asJSON [
 
-	^ toolCallId
+	| json |
+	json := Dictionary new.
+	json at: 'type' put: 'tool_call'.
+	json at: 'toolCallId' put: toolCallId.
+	json at: 'title' put: title.
+	json at: 'kind' put: kind asString.
+	json at: 'status' put: status asString.
+	location ifNotNil: [ json at: 'location' put: location asJSON ].
+	content ifNotNil: [
+		json at: 'content' put: (content collect: [ :c | c asJSON ]) ].
+	^ json
 ]
 
 { #category : 'accessing' }
-ACPToolCall >> toolCallId: aString [
+ACPToolCall >> content [
 
-	toolCallId := aString
+	^ content
 ]
 
 { #category : 'accessing' }
-ACPToolCall >> title [
+ACPToolCall >> content: anArray [
 
-	^ title
-]
-
-{ #category : 'accessing' }
-ACPToolCall >> title: aString [
-
-	title := aString
+	content := anArray
 ]
 
 { #category : 'accessing' }
@@ -78,6 +82,18 @@ ACPToolCall >> kind: aSymbol [
 ]
 
 { #category : 'accessing' }
+ACPToolCall >> location [
+
+	^ location
+]
+
+{ #category : 'accessing' }
+ACPToolCall >> location: anACPLocation [
+
+	location := anACPLocation
+]
+
+{ #category : 'accessing' }
 ACPToolCall >> status [
 
 	^ status
@@ -92,27 +108,27 @@ ACPToolCall >> status: aSymbol [
 ]
 
 { #category : 'accessing' }
-ACPToolCall >> location [
+ACPToolCall >> title [
 
-	^ location
+	^ title
 ]
 
 { #category : 'accessing' }
-ACPToolCall >> location: anACPLocation [
+ACPToolCall >> title: aString [
 
-	location := anACPLocation
+	title := aString
 ]
 
 { #category : 'accessing' }
-ACPToolCall >> content [
+ACPToolCall >> toolCallId [
 
-	^ content
+	^ toolCallId
 ]
 
 { #category : 'accessing' }
-ACPToolCall >> content: anArray [
+ACPToolCall >> toolCallId: aString [
 
-	content := anArray
+	toolCallId := aString
 ]
 
 { #category : 'accessing' }
@@ -128,20 +144,4 @@ ACPToolCall >> yourself [
 	title ifNil: [ ACPValidationError signal: 'Tool call title is required' ].
 	kind ifNil: [ ACPValidationError signal: 'Tool call kind is required' ].
 	^ self
-]
-
-{ #category : 'serialization' }
-ACPToolCall >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'type' put: 'tool_call'.
-	json at: 'toolCallId' put: toolCallId.
-	json at: 'title' put: title.
-	json at: 'kind' put: kind asString.
-	json at: 'status' put: status asString.
-	location ifNotNil: [ json at: 'location' put: location asJSON ].
-	content ifNotNil: [
-		json at: 'content' put: (content collect: [ :c | c asJSON ]) ].
-	^ json
 ]

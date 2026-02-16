@@ -6,6 +6,48 @@ Class {
 	#tag : 'Messages'
 }
 
+{ #category : 'tests - terminal' }
+ACPMessageTest >> testCreateTerminalRequestSerialization [
+	"Test serializing create terminal request"
+
+	| request json |
+	request := ACPCreateTerminalRequest new
+		           sessionId: 'sess_123';
+		           command: 'npm';
+		           args: #( 'test' );
+		           cwd: '/path/to/project';
+		           env: (Dictionary new
+				            at: 'NODE_ENV' put: 'test';
+				            yourself);
+		           yourself.
+
+	json := request asJSON.
+
+	self assert: (json at: 'method') equals: 'terminal/create'.
+	self assert: (json at: 'params' ifPresent: [ :p | p at: 'command' ]) equals: 'npm'.
+	self assert: (json at: 'params' ifPresent: [ :p | (p at: 'args') first ]) equals: 'test'
+]
+
+{ #category : 'tests - error' }
+ACPMessageTest >> testErrorSerialization [
+	"Test serializing error messages"
+
+	| error json |
+	error := ACPError new
+		         code: -32001;
+		         message: 'Authentication failed';
+		         data: (Dictionary new
+				          at: 'reason' put: 'Invalid token';
+				          yourself);
+		         yourself.
+
+	json := error asJSON.
+
+	self assert: (json at: 'jsonrpc') equals: '2.0'.
+	self assert: (json at: 'error' ifPresent: [ :e | e at: 'code' ]) equals: -32001.
+	self assert: (json at: 'error' ifPresent: [ :e | e at: 'message' ]) equals: 'Authentication failed'
+]
+
 { #category : 'tests - serialization' }
 ACPMessageTest >> testInitializeRequestSerialization [
 	"Test serializing an initialize request to JSON"
@@ -72,6 +114,20 @@ ACPMessageTest >> testNewSessionRequestSerialization [
 	self assert: (json at: 'params' ifPresent: [ :p | p at: 'cwd' ]) equals: '/home/user/project'
 ]
 
+{ #category : 'tests - notification' }
+ACPMessageTest >> testNotificationSerialization [
+	"Test that notifications don't include ID"
+
+	| notification json |
+	notification := ACPCancelRequest new sessionId: 'sess_123'.
+
+	json := notification asJSON.
+
+	self assert: (json at: 'jsonrpc') equals: '2.0'.
+	self assert: (json at: 'method') equals: 'session/cancel'.
+	self deny: (json includesKey: 'id')
+]
+
 { #category : 'tests - serialization' }
 ACPMessageTest >> testPromptRequestWithContent [
 	"Test serializing a prompt request with content blocks"
@@ -111,57 +167,6 @@ ACPMessageTest >> testProtocolVersionValidation [
 			yourself ] raise: ACPValidationError
 ]
 
-{ #category : 'tests - validation' }
-ACPMessageTest >> testSessionIdValidation [
-	"Test that session ID must be valid"
-
-	self should: [
-		ACPPromptRequest new
-			sessionId: nil;
-			prompt: #(  );
-			yourself ] raise: ACPValidationError.
-
-	self should: [
-		ACPPromptRequest new
-			sessionId: '';
-			prompt: #(  );
-			yourself ] raise: ACPValidationError
-]
-
-{ #category : 'tests - error' }
-ACPMessageTest >> testErrorSerialization [
-	"Test serializing error messages"
-
-	| error json |
-	error := ACPError new
-		         code: -32001;
-		         message: 'Authentication failed';
-		         data: (Dictionary new
-				          at: 'reason' put: 'Invalid token';
-				          yourself);
-		         yourself.
-
-	json := error asJSON.
-
-	self assert: (json at: 'jsonrpc') equals: '2.0'.
-	self assert: (json at: 'error' ifPresent: [ :e | e at: 'code' ]) equals: -32001.
-	self assert: (json at: 'error' ifPresent: [ :e | e at: 'message' ]) equals: 'Authentication failed'
-]
-
-{ #category : 'tests - notification' }
-ACPMessageTest >> testNotificationSerialization [
-	"Test that notifications don't include ID"
-
-	| notification json |
-	notification := ACPCancelRequest new sessionId: 'sess_123'.
-
-	json := notification asJSON.
-
-	self assert: (json at: 'jsonrpc') equals: '2.0'.
-	self assert: (json at: 'method') equals: 'session/cancel'.
-	self deny: (json includesKey: 'id')
-]
-
 { #category : 'tests - file operations' }
 ACPMessageTest >> testReadFileRequestSerialization [
 	"Test serializing read file request"
@@ -181,45 +186,6 @@ ACPMessageTest >> testReadFileRequestSerialization [
 	self assert: (json at: 'params' ifPresent: [ :p | p at: 'startLine' ]) equals: 10
 ]
 
-{ #category : 'tests - file operations' }
-ACPMessageTest >> testWriteFileRequestSerialization [
-	"Test serializing write file request"
-
-	| request json |
-	request := ACPWriteFileRequest new
-		           sessionId: 'sess_123';
-		           path: '/path/to/file.txt';
-		           content: 'Hello World';
-		           yourself.
-
-	json := request asJSON.
-
-	self assert: (json at: 'method') equals: 'fs/write_text_file'.
-	self assert: (json at: 'params' ifPresent: [ :p | p at: 'content' ]) equals: 'Hello World'
-]
-
-{ #category : 'tests - terminal' }
-ACPMessageTest >> testCreateTerminalRequestSerialization [
-	"Test serializing create terminal request"
-
-	| request json |
-	request := ACPCreateTerminalRequest new
-		           sessionId: 'sess_123';
-		           command: 'npm';
-		           args: #( 'test' );
-		           cwd: '/path/to/project';
-		           env: (Dictionary new
-				            at: 'NODE_ENV' put: 'test';
-				            yourself);
-		           yourself.
-
-	json := request asJSON.
-
-	self assert: (json at: 'method') equals: 'terminal/create'.
-	self assert: (json at: 'params' ifPresent: [ :p | p at: 'command' ]) equals: 'npm'.
-	self assert: (json at: 'params' ifPresent: [ :p | (p at: 'args') first ]) equals: 'test'
-]
-
 { #category : 'tests - roundtrip' }
 ACPMessageTest >> testSerializationRoundtrip [
 	"Test that messages can be serialized and deserialized"
@@ -235,4 +201,38 @@ ACPMessageTest >> testSerializationRoundtrip [
 
 	self assert: deserialized class equals: original class.
 	self assert: deserialized protocolVersion equals: original protocolVersion
+]
+
+{ #category : 'tests - validation' }
+ACPMessageTest >> testSessionIdValidation [
+	"Test that session ID must be valid"
+
+	self should: [
+		ACPPromptRequest new
+			sessionId: nil;
+			prompt: #(  );
+			yourself ] raise: ACPValidationError.
+
+	self should: [
+		ACPPromptRequest new
+			sessionId: '';
+			prompt: #(  );
+			yourself ] raise: ACPValidationError
+]
+
+{ #category : 'tests - file operations' }
+ACPMessageTest >> testWriteFileRequestSerialization [
+	"Test serializing write file request"
+
+	| request json |
+	request := ACPWriteFileRequest new
+		           sessionId: 'sess_123';
+		           path: '/path/to/file.txt';
+		           content: 'Hello World';
+		           yourself.
+
+	json := request asJSON.
+
+	self assert: (json at: 'method') equals: 'fs/write_text_file'.
+	self assert: (json at: 'params' ifPresent: [ :p | p at: 'content' ]) equals: 'Hello World'
 ]

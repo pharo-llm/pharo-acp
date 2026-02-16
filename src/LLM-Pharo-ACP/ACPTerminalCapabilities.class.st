@@ -13,6 +13,19 @@ Class {
 	#tag : 'Capabilities'
 }
 
+{ #category : 'serialization' }
+ACPTerminalCapabilities >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	json at: 'create' put: self create.
+	json at: 'output' put: self output.
+	json at: 'waitForExit' put: self waitForExit.
+	json at: 'kill' put: self kill.
+	json at: 'release' put: self release.
+	^ json
+]
+
 { #category : 'accessing' }
 ACPTerminalCapabilities >> create [
 
@@ -23,30 +36,6 @@ ACPTerminalCapabilities >> create [
 ACPTerminalCapabilities >> create: aBoolean [
 
 	create := aBoolean
-]
-
-{ #category : 'accessing' }
-ACPTerminalCapabilities >> output [
-
-	^ output ifNil: [ false ]
-]
-
-{ #category : 'accessing' }
-ACPTerminalCapabilities >> output: aBoolean [
-
-	output := aBoolean
-]
-
-{ #category : 'accessing' }
-ACPTerminalCapabilities >> waitForExit [
-
-	^ waitForExit ifNil: [ false ]
-]
-
-{ #category : 'accessing' }
-ACPTerminalCapabilities >> waitForExit: aBoolean [
-
-	waitForExit := aBoolean
 ]
 
 { #category : 'accessing' }
@@ -62,6 +51,18 @@ ACPTerminalCapabilities >> kill: aBoolean [
 ]
 
 { #category : 'accessing' }
+ACPTerminalCapabilities >> output [
+
+	^ output ifNil: [ false ]
+]
+
+{ #category : 'accessing' }
+ACPTerminalCapabilities >> output: aBoolean [
+
+	output := aBoolean
+]
+
+{ #category : 'accessing' }
 ACPTerminalCapabilities >> release [
 
 	^ release ifNil: [ false ]
@@ -73,15 +74,14 @@ ACPTerminalCapabilities >> release: aBoolean [
 	release := aBoolean
 ]
 
-{ #category : 'serialization' }
-ACPTerminalCapabilities >> asJSON [
+{ #category : 'accessing' }
+ACPTerminalCapabilities >> waitForExit [
 
-	| json |
-	json := Dictionary new.
-	json at: 'create' put: self create.
-	json at: 'output' put: self output.
-	json at: 'waitForExit' put: self waitForExit.
-	json at: 'kill' put: self kill.
-	json at: 'release' put: self release.
-	^ json
+	^ waitForExit ifNil: [ false ]
+]
+
+{ #category : 'accessing' }
+ACPTerminalCapabilities >> waitForExit: aBoolean [
+
+	waitForExit := aBoolean
 ]

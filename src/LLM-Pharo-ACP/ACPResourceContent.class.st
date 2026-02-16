@@ -9,6 +9,16 @@ Class {
 	#tag : 'Content'
 }
 
+{ #category : 'serialization' }
+ACPResourceContent >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	json at: 'type' put: 'resource'.
+	json at: 'resource' put: resource asJSON.
+	^ json
+]
+
 { #category : 'accessing' }
 ACPResourceContent >> resource [
 
@@ -25,14 +35,4 @@ ACPResourceContent >> resource: anACPResource [
 ACPResourceContent >> type [
 
 	^ 'resource'
-]
-
-{ #category : 'serialization' }
-ACPResourceContent >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'type' put: 'resource'.
-	json at: 'resource' put: resource asJSON.
-	^ json
 ]

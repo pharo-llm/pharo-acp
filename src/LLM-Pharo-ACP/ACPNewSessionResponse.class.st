@@ -9,24 +9,6 @@ Class {
 	#tag : 'Messages'
 }
 
-{ #category : 'accessing' }
-ACPNewSessionResponse >> sessionId [
-
-	^ sessionId
-]
-
-{ #category : 'accessing' }
-ACPNewSessionResponse >> sessionId: aString [
-
-	sessionId := aString
-]
-
-{ #category : 'testing' }
-ACPNewSessionResponse >> isResponse [
-
-	^ true
-]
-
 { #category : 'serialization' }
 ACPNewSessionResponse >> asJSON [
 
@@ -38,4 +20,22 @@ ACPNewSessionResponse >> asJSON [
 	result at: 'sessionId' put: sessionId.
 	json at: 'result' put: result.
 	^ json
+]
+
+{ #category : 'testing' }
+ACPNewSessionResponse >> isResponse [
+
+	^ true
+]
+
+{ #category : 'accessing' }
+ACPNewSessionResponse >> sessionId [
+
+	^ sessionId
+]
+
+{ #category : 'accessing' }
+ACPNewSessionResponse >> sessionId: aString [
+
+	sessionId := aString
 ]

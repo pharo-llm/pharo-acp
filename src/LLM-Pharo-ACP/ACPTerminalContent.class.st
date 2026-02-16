@@ -11,16 +11,16 @@ Class {
 	#tag : 'Content'
 }
 
-{ #category : 'accessing' }
-ACPTerminalContent >> terminalId [
+{ #category : 'serialization' }
+ACPTerminalContent >> asJSON [
 
-	^ terminalId
-]
-
-{ #category : 'accessing' }
-ACPTerminalContent >> terminalId: aString [
-
-	terminalId := aString
+	| json |
+	json := Dictionary new.
+	json at: 'type' put: 'terminal'.
+	json at: 'terminalId' put: terminalId.
+	json at: 'command' put: command.
+	json at: 'exitCode' put: exitCode.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -48,19 +48,19 @@ ACPTerminalContent >> exitCode: anInteger [
 ]
 
 { #category : 'accessing' }
+ACPTerminalContent >> terminalId [
+
+	^ terminalId
+]
+
+{ #category : 'accessing' }
+ACPTerminalContent >> terminalId: aString [
+
+	terminalId := aString
+]
+
+{ #category : 'accessing' }
 ACPTerminalContent >> type [
 
 	^ 'terminal'
-]
-
-{ #category : 'serialization' }
-ACPTerminalContent >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'type' put: 'terminal'.
-	json at: 'terminalId' put: terminalId.
-	json at: 'command' put: command.
-	json at: 'exitCode' put: exitCode.
-	^ json
 ]

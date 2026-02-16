@@ -10,15 +10,6 @@ Class {
 }
 
 { #category : 'instance creation' }
-ACPMessage class >> fromJSON: aString [
-	"Deserialize a message from a JSON string"
-
-	| dict |
-	dict := STONJSON fromString: aString.
-	^ self fromDictionary: dict
-]
-
-{ #category : 'instance creation' }
 ACPMessage class >> fromDictionary: aDictionary [
 	"Create appropriate message subclass from a dictionary"
 
@@ -39,6 +30,48 @@ ACPMessage class >> fromDictionary: aDictionary [
 		^ self requestFromMethod: method params: (aDictionary at: 'params' ifAbsent: [ Dictionary new ]) id: (aDictionary at: 'id' ifAbsent: [ nil ]) ].
 
 	ACPProtocolError signal: 'Invalid message format'
+]
+
+{ #category : 'instance creation' }
+ACPMessage class >> fromJSON: aString [
+	"Deserialize a message from a JSON string"
+
+	| dict |
+	dict := STONJSON fromString: aString.
+	^ self fromDictionary: dict
+]
+
+{ #category : 'private' }
+ACPMessage class >> requestFromMethod: method params: params id: anId [
+	"Create appropriate request from method name"
+
+	| message |
+	method = 'initialize' ifTrue: [
+		message := ACPInitializeRequest new.
+		params at: 'protocolVersion' ifPresent: [ :v | message protocolVersion: v ].
+		params at: 'clientInfo' ifPresent: [ :ci |
+			message clientInfo: (ACPClientInfo new
+				name: (ci at: 'name');
+				version: (ci at: 'version' ifAbsent: [ nil ]);
+				yourself) ] ].
+	method = 'session/new' ifTrue: [
+		message := ACPNewSessionRequest new.
+		params at: 'cwd' ifPresent: [ :v | message cwd: v ].
+		params at: 'mcpServers' ifPresent: [ :v | message mcpServers: v ] ].
+	method = 'session/prompt' ifTrue: [
+		message := ACPPromptRequest new.
+		params at: 'sessionId' ifPresent: [ :v | message sessionId: v ].
+		params at: 'prompt' ifPresent: [ :v | message prompt: v ] ].
+	method = 'session/cancel' ifTrue: [
+		message := ACPCancelRequest new.
+		params at: 'sessionId' ifPresent: [ :v | message sessionId: v ] ].
+
+	message ifNil: [
+		"Generic request"
+		message := ACPGenericRequest new method: method; params: params ].
+
+	anId ifNotNil: [ message id: anId ].
+	^ message
 ]
 
 { #category : 'private' }
@@ -80,37 +113,11 @@ ACPMessage class >> responseFromResult: result id: anId [
 	^ response
 ]
 
-{ #category : 'private' }
-ACPMessage class >> requestFromMethod: method params: params id: anId [
-	"Create appropriate request from method name"
+{ #category : 'serialization' }
+ACPMessage >> asJSON [
+	"Subclasses must override"
 
-	| message |
-	method = 'initialize' ifTrue: [
-		message := ACPInitializeRequest new.
-		params at: 'protocolVersion' ifPresent: [ :v | message protocolVersion: v ].
-		params at: 'clientInfo' ifPresent: [ :ci |
-			message clientInfo: (ACPClientInfo new
-				name: (ci at: 'name');
-				version: (ci at: 'version' ifAbsent: [ nil ]);
-				yourself) ] ].
-	method = 'session/new' ifTrue: [
-		message := ACPNewSessionRequest new.
-		params at: 'cwd' ifPresent: [ :v | message cwd: v ].
-		params at: 'mcpServers' ifPresent: [ :v | message mcpServers: v ] ].
-	method = 'session/prompt' ifTrue: [
-		message := ACPPromptRequest new.
-		params at: 'sessionId' ifPresent: [ :v | message sessionId: v ].
-		params at: 'prompt' ifPresent: [ :v | message prompt: v ] ].
-	method = 'session/cancel' ifTrue: [
-		message := ACPCancelRequest new.
-		params at: 'sessionId' ifPresent: [ :v | message sessionId: v ] ].
-
-	message ifNil: [
-		"Generic request"
-		message := ACPGenericRequest new method: method; params: params ].
-
-	anId ifNotNil: [ message id: anId ].
-	^ message
+	^ self subclassResponsibility
 ]
 
 { #category : 'accessing' }
@@ -125,22 +132,8 @@ ACPMessage >> id: anObject [
 	id := anObject
 ]
 
-{ #category : 'accessing' }
-ACPMessage >> method [
-	"Subclasses should override"
-
-	^ nil
-]
-
-{ #category : 'serialization' }
-ACPMessage >> asJSON [
-	"Subclasses must override"
-
-	^ self subclassResponsibility
-]
-
 { #category : 'testing' }
-ACPMessage >> isRequest [
+ACPMessage >> isError [
 
 	^ false
 ]
@@ -152,13 +145,20 @@ ACPMessage >> isNotification [
 ]
 
 { #category : 'testing' }
-ACPMessage >> isResponse [
+ACPMessage >> isRequest [
 
 	^ false
 ]
 
 { #category : 'testing' }
-ACPMessage >> isError [
+ACPMessage >> isResponse [
 
 	^ false
+]
+
+{ #category : 'accessing' }
+ACPMessage >> method [
+	"Subclasses should override"
+
+	^ nil
 ]

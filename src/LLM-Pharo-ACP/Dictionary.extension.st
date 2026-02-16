@@ -1,4 +1,4 @@
-Extension { #name : 'LLM-Pharo-ACP' }
+Extension { #name : 'Dictionary' }
 
 { #category : '*LLM-Pharo-ACP' }
 Dictionary >> asJSONString [

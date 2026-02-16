@@ -11,17 +11,16 @@ Class {
 	#tag : 'Content'
 }
 
-{ #category : 'accessing' }
-ACPImageContent >> mimeType [
+{ #category : 'serialization' }
+ACPImageContent >> asJSON [
 
-	^ mimeType
-]
-
-{ #category : 'accessing' }
-ACPImageContent >> mimeType: aString [
-
-	aString ifNil: [ ACPValidationError signal: 'Image MIME type cannot be nil' ].
-	mimeType := aString
+	| json |
+	json := Dictionary new.
+	json at: 'type' put: 'image'.
+	json at: 'mimeType' put: mimeType.
+	json at: 'data' put: data.
+	uri ifNotNil: [ json at: 'uri' put: uri ].
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -37,6 +36,25 @@ ACPImageContent >> data: aString [
 ]
 
 { #category : 'accessing' }
+ACPImageContent >> mimeType [
+
+	^ mimeType
+]
+
+{ #category : 'accessing' }
+ACPImageContent >> mimeType: aString [
+
+	aString ifNil: [ ACPValidationError signal: 'Image MIME type cannot be nil' ].
+	mimeType := aString
+]
+
+{ #category : 'accessing' }
+ACPImageContent >> type [
+
+	^ 'image'
+]
+
+{ #category : 'accessing' }
 ACPImageContent >> uri [
 
 	^ uri
@@ -46,22 +64,4 @@ ACPImageContent >> uri [
 ACPImageContent >> uri: aString [
 
 	uri := aString
-]
-
-{ #category : 'accessing' }
-ACPImageContent >> type [
-
-	^ 'image'
-]
-
-{ #category : 'serialization' }
-ACPImageContent >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'type' put: 'image'.
-	json at: 'mimeType' put: mimeType.
-	json at: 'data' put: data.
-	uri ifNotNil: [ json at: 'uri' put: uri ].
-	^ json
 ]

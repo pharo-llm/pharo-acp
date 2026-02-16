@@ -9,6 +9,12 @@ Class {
 	#tag : 'Transport'
 }
 
+{ #category : 'operations' }
+ACPTransport >> close [
+
+	closed := true
+]
+
 { #category : 'initialization' }
 ACPTransport >> initialize [
 
@@ -16,21 +22,15 @@ ACPTransport >> initialize [
 	closed := false
 ]
 
+{ #category : 'testing' }
+ACPTransport >> isClosed [
+
+	^ closed ifNil: [ false ]
+]
+
 { #category : 'operations' }
 ACPTransport >> send: aMessage [
 	"Send a message through the transport"
 
 	self subclassResponsibility
-]
-
-{ #category : 'operations' }
-ACPTransport >> close [
-
-	closed := true
-]
-
-{ #category : 'testing' }
-ACPTransport >> isClosed [
-
-	^ closed ifNil: [ false ]
 ]

@@ -11,16 +11,15 @@ Class {
 	#tag : 'Messages'
 }
 
-{ #category : 'accessing' }
-ACPPermissionOption >> optionId [
+{ #category : 'serialization' }
+ACPPermissionOption >> asJSON [
 
-	^ optionId
-]
-
-{ #category : 'accessing' }
-ACPPermissionOption >> optionId: aString [
-
-	optionId := aString
+	| json |
+	json := Dictionary new.
+	json at: 'optionId' put: optionId.
+	json at: 'kind' put: kind.
+	json at: 'label' put: label.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -47,13 +46,14 @@ ACPPermissionOption >> label: aString [
 	label := aString
 ]
 
-{ #category : 'serialization' }
-ACPPermissionOption >> asJSON [
+{ #category : 'accessing' }
+ACPPermissionOption >> optionId [
 
-	| json |
-	json := Dictionary new.
-	json at: 'optionId' put: optionId.
-	json at: 'kind' put: kind.
-	json at: 'label' put: label.
-	^ json
+	^ optionId
+]
+
+{ #category : 'accessing' }
+ACPPermissionOption >> optionId: aString [
+
+	optionId := aString
 ]

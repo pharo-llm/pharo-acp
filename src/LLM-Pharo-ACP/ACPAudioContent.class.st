@@ -10,16 +10,15 @@ Class {
 	#tag : 'Content'
 }
 
-{ #category : 'accessing' }
-ACPAudioContent >> mimeType [
+{ #category : 'serialization' }
+ACPAudioContent >> asJSON [
 
-	^ mimeType
-]
-
-{ #category : 'accessing' }
-ACPAudioContent >> mimeType: aString [
-
-	mimeType := aString
+	| json |
+	json := Dictionary new.
+	json at: 'type' put: 'audio'.
+	json at: 'mimeType' put: mimeType.
+	json at: 'data' put: data.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -35,18 +34,19 @@ ACPAudioContent >> data: aString [
 ]
 
 { #category : 'accessing' }
+ACPAudioContent >> mimeType [
+
+	^ mimeType
+]
+
+{ #category : 'accessing' }
+ACPAudioContent >> mimeType: aString [
+
+	mimeType := aString
+]
+
+{ #category : 'accessing' }
 ACPAudioContent >> type [
 
 	^ 'audio'
-]
-
-{ #category : 'serialization' }
-ACPAudioContent >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'type' put: 'audio'.
-	json at: 'mimeType' put: mimeType.
-	json at: 'data' put: data.
-	^ json
 ]

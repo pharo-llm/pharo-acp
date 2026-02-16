@@ -32,68 +32,24 @@ ACPIntegrationTest >> tearDown [
 	super tearDown
 ]
 
-{ #category : 'tests - complete flow' }
-ACPIntegrationTest >> testCompletePromptFlow [
-	"Test complete prompt turn flow from client to agent"
+{ #category : 'tests - error scenarios' }
+ACPIntegrationTest >> testCancellation [
+	"Test cancelling operations"
 
-	| prompt response updates |
-	updates := OrderedCollection new.
-
-	"Register update handler"
-	session onUpdate: [ :update | updates add: update ].
+	| prompt cancelled |
+	cancelled := false.
 
 	"Send prompt"
-	prompt := { (ACPTextContent new text: 'Create a class') }.
-	response := session sendPrompt: prompt.
+	[
+	session sendPrompt: {
+			(ACPTextContent new text: 'Long running operation') }.
 
-	"Verify response"
-	self assert: response notNil.
-	self assert: response stopReason notNil.
+	"Cancel immediately"
+	session cancel.
+	cancelled := true ] on: ACPCancelledError do: [ :error |
+		cancelled := true ].
 
-	"Verify updates were received"
-	self assert: updates notEmpty
-]
-
-{ #category : 'tests - complete flow' }
-ACPIntegrationTest >> testPromptWithToolCalls [
-	"Test prompt flow with tool calls"
-
-	| prompt response toolCalls |
-	toolCalls := OrderedCollection new.
-
-	"Capture tool calls"
-	session onUpdate: [ :update |
-		update type = 'tool_call' ifTrue: [ toolCalls add: update ] ].
-
-	"Send prompt that triggers tool calls"
-	prompt := {
-		          (ACPTextContent new text: 'Read and modify config.json') }.
-	response := session sendPrompt: prompt.
-
-	"Verify tool calls were made"
-	self assert: toolCalls notEmpty.
-	self assert: (toolCalls anySatisfy: [ :tc | tc kind = #read ]).
-	self assert: (toolCalls anySatisfy: [ :tc | tc kind = #edit ])
-]
-
-{ #category : 'tests - complete flow' }
-ACPIntegrationTest >> testPromptWithPermissionRequest [
-	"Test prompt flow with permission requests"
-
-	| prompt response permissionRequested |
-	permissionRequested := false.
-
-	"Handle permission request"
-	client connection onRequest: 'session/request_permission' do: [ :request |
-		permissionRequested := true.
-		ACPPermissionResponse new selectedOptionId: 'allow_once' ].
-
-	"Send prompt that requires permission"
-	prompt := { (ACPTextContent new text: 'Delete temporary files') }.
-	response := session sendPrompt: prompt.
-
-	"Verify permission was requested"
-	self assert: permissionRequested
+	self assert: cancelled
 ]
 
 { #category : 'tests - file operations' }
@@ -126,111 +82,26 @@ ACPIntegrationTest >> testCompleteFileWorkflow [
 		ensure: [ testFile ensureDelete ]
 ]
 
-{ #category : 'tests - terminal operations' }
-ACPIntegrationTest >> testTerminalWorkflow [
-	"Test complete terminal command execution workflow"
+{ #category : 'tests - complete flow' }
+ACPIntegrationTest >> testCompletePromptFlow [
+	"Test complete prompt turn flow from client to agent"
 
-	| createRequest terminal output |
-	"Create terminal and run echo command"
-	createRequest := ACPCreateTerminalRequest new
-		                 sessionId: session sessionId;
-		                 command: 'echo';
-		                 args: #( 'Hello Terminal' );
-		                 cwd: session cwd pathString;
-		                 yourself.
+	| prompt response updates |
+	updates := OrderedCollection new.
 
-	terminal := client connection sendRequest: createRequest.
-	self assert: terminal terminalId notNil.
-
-	"Wait for command completion"
-	output := client connection sendRequest:
-		          (ACPWaitForExitRequest new
-			           sessionId: session sessionId;
-			           terminalId: terminal terminalId;
-			           yourself).
-
-	"Verify output"
-	self assert: (output output includesSubstring: 'Hello Terminal').
-	self assert: output exitCode equals: 0.
-
-	"Release terminal"
-	client connection sendRequest: (ACPTerminalReleaseRequest new
-			 sessionId: session sessionId;
-			 terminalId: terminal terminalId;
-			 yourself)
-]
-
-{ #category : 'tests - session modes' }
-ACPIntegrationTest >> testSessionModeChanges [
-	"Test changing session modes"
-
-	| modeChanges |
-	modeChanges := OrderedCollection new.
-
-	"Track mode changes"
-	session onUpdate: [ :update |
-		update type = 'current_mode_update' ifTrue: [
-			modeChanges add: update modeId ] ].
-
-	"Change to architect mode"
-	session setMode: 'architect'.
-
-	"Change to code mode"
-	session setMode: 'code'.
-
-	"Verify mode changes were tracked"
-	self assert: modeChanges includes: 'architect'.
-	self assert: modeChanges includes: 'code'
-]
-
-{ #category : 'tests - multiple sessions' }
-ACPIntegrationTest >> testMultipleSessionsIndependence [
-	"Test that multiple sessions are independent"
-
-	| session2 updates1 updates2 |
-	updates1 := OrderedCollection new.
-	updates2 := OrderedCollection new.
-
-	"Create second session"
-	session2 := client newSession: FileSystem workingDirectory.
-
-	"Register separate update handlers"
-	session onUpdate: [ :update | updates1 add: update ].
-	session2 onUpdate: [ :update | updates2 add: update ].
-
-	"Send prompts to both sessions"
-	session sendPrompt: {
-			(ACPTextContent new text: 'Session 1 prompt') }.
-	session2 sendPrompt: {
-			(ACPTextContent new text: 'Session 2 prompt') }.
-
-	"Verify updates are separate"
-	self assert: updates1 notEmpty.
-	self assert: updates2 notEmpty.
-	self assert: updates1 ~= updates2.
-
-	"Cleanup"
-	session2 close
-]
-
-{ #category : 'tests - error scenarios' }
-ACPIntegrationTest >> testCancellation [
-	"Test cancelling operations"
-
-	| prompt cancelled |
-	cancelled := false.
+	"Register update handler"
+	session onUpdate: [ :update | updates add: update ].
 
 	"Send prompt"
-	[
-	session sendPrompt: {
-			(ACPTextContent new text: 'Long running operation') }.
+	prompt := { (ACPTextContent new text: 'Create a class') }.
+	response := session sendPrompt: prompt.
 
-	"Cancel immediately"
-	session cancel.
-	cancelled := true ] on: ACPCancelledError do: [ :error |
-		cancelled := true ].
+	"Verify response"
+	self assert: response notNil.
+	self assert: response stopReason notNil.
 
-	self assert: cancelled
+	"Verify updates were received"
+	self assert: updates notEmpty
 ]
 
 { #category : 'tests - error scenarios' }
@@ -273,26 +144,89 @@ ACPIntegrationTest >> testMultipleContentTypes [
 	self assert: response stopReason notNil
 ]
 
-{ #category : 'tests - streaming' }
-ACPIntegrationTest >> testStreamingUpdates [
-	"Test that updates stream in real-time"
+{ #category : 'tests - multiple sessions' }
+ACPIntegrationTest >> testMultipleSessionsIndependence [
+	"Test that multiple sessions are independent"
 
-	| updates startTime endTime |
-	updates := OrderedCollection new.
+	| session2 updates1 updates2 |
+	updates1 := OrderedCollection new.
+	updates2 := OrderedCollection new.
 
-	session onUpdate: [ :update |
-		updates add: {
-				update.
-				DateAndTime now } ].
+	"Create second session"
+	session2 := client newSession: FileSystem workingDirectory.
 
-	startTime := DateAndTime now.
+	"Register separate update handlers"
+	session onUpdate: [ :update | updates1 add: update ].
+	session2 onUpdate: [ :update | updates2 add: update ].
+
+	"Send prompts to both sessions"
 	session sendPrompt: {
-			(ACPTextContent new text: 'Generate documentation') }.
-	endTime := DateAndTime now.
+			(ACPTextContent new text: 'Session 1 prompt') }.
+	session2 sendPrompt: {
+			(ACPTextContent new text: 'Session 2 prompt') }.
 
-	"Verify updates came during processing, not all at once"
-	self assert: updates size > 1.
-	self assert: endTime > startTime
+	"Verify updates are separate"
+	self assert: updates1 notEmpty.
+	self assert: updates2 notEmpty.
+	self assert: updates1 ~= updates2.
+
+	"Cleanup"
+	session2 close
+]
+
+{ #category : 'tests - complete flow' }
+ACPIntegrationTest >> testPromptWithPermissionRequest [
+	"Test prompt flow with permission requests"
+
+	| prompt response permissionRequested |
+	permissionRequested := false.
+
+	"Handle permission request"
+	client connection onRequest: 'session/request_permission' do: [ :request |
+		permissionRequested := true.
+		ACPPermissionResponse new selectedOptionId: 'allow_once' ].
+
+	"Send prompt that requires permission"
+	prompt := { (ACPTextContent new text: 'Delete temporary files') }.
+	response := session sendPrompt: prompt.
+
+	"Verify permission was requested"
+	self assert: permissionRequested
+]
+
+{ #category : 'tests - complete flow' }
+ACPIntegrationTest >> testPromptWithToolCalls [
+	"Test prompt flow with tool calls"
+
+	| prompt response toolCalls |
+	toolCalls := OrderedCollection new.
+
+	"Capture tool calls"
+	session onUpdate: [ :update |
+		update type = 'tool_call' ifTrue: [ toolCalls add: update ] ].
+
+	"Send prompt that triggers tool calls"
+	prompt := {
+		          (ACPTextContent new text: 'Read and modify config.json') }.
+	response := session sendPrompt: prompt.
+
+	"Verify tool calls were made"
+	self assert: toolCalls notEmpty.
+	self assert: (toolCalls anySatisfy: [ :tc | tc kind = #read ]).
+	self assert: (toolCalls anySatisfy: [ :tc | tc kind = #edit ])
+]
+
+{ #category : 'tests - session modes' }
+ACPIntegrationTest >> testSessionModeChanges [
+	"Test changing session modes"
+
+	| modeChanges |
+	modeChanges := OrderedCollection new. "Track mode changes"
+	session onUpdate: [ :update | update type = 'current_mode_update' ifTrue: [ modeChanges add: update modeId ] ]. "Change to architect mode"
+	session setMode: 'architect'. "Change to code mode"
+	session setMode: 'code'. "Verify mode changes were tracked"
+	self assert: (modeChanges includes: 'architect').
+	self assert: (modeChanges includes: 'code').
 ]
 
 { #category : 'tests - session loading' }
@@ -315,4 +249,60 @@ ACPIntegrationTest >> testSessionPersistenceAndLoading [
 	"Verify session was loaded"
 	self assert: loadedSession sessionId equals: originalSessionId.
 	self assert: loadedSession history notEmpty
+]
+
+{ #category : 'tests - streaming' }
+ACPIntegrationTest >> testStreamingUpdates [
+	"Test that updates stream in real-time"
+
+	| updates startTime endTime |
+	updates := OrderedCollection new.
+
+	session onUpdate: [ :update |
+		updates add: {
+				update.
+				DateAndTime now } ].
+
+	startTime := DateAndTime now.
+	session sendPrompt: {
+			(ACPTextContent new text: 'Generate documentation') }.
+	endTime := DateAndTime now.
+
+	"Verify updates came during processing, not all at once"
+	self assert: updates size > 1.
+	self assert: endTime > startTime
+]
+
+{ #category : 'tests - terminal operations' }
+ACPIntegrationTest >> testTerminalWorkflow [
+	"Test complete terminal command execution workflow"
+
+	| createRequest terminal output |
+	"Create terminal and run echo command"
+	createRequest := ACPCreateTerminalRequest new
+		                 sessionId: session sessionId;
+		                 command: 'echo';
+		                 args: #( 'Hello Terminal' );
+		                 cwd: session cwd pathString;
+		                 yourself.
+
+	terminal := client connection sendRequest: createRequest.
+	self assert: terminal terminalId notNil.
+
+	"Wait for command completion"
+	output := client connection sendRequest:
+		          (ACPWaitForExitRequest new
+			           sessionId: session sessionId;
+			           terminalId: terminal terminalId;
+			           yourself).
+
+	"Verify output"
+	self assert: (output output includesSubstring: 'Hello Terminal').
+	self assert: output exitCode equals: 0.
+
+	"Release terminal"
+	client connection sendRequest: (ACPTerminalReleaseRequest new
+			 sessionId: session sessionId;
+			 terminalId: terminal terminalId;
+			 yourself)
 ]

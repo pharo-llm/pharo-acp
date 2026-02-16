@@ -11,6 +11,29 @@ Class {
 	#tag : 'Capabilities'
 }
 
+{ #category : 'serialization' }
+ACPSessionMode >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	json at: 'modeId' put: modeId.
+	json at: 'title' put: title.
+	description ifNotNil: [ json at: 'description' put: description ].
+	^ json
+]
+
+{ #category : 'accessing' }
+ACPSessionMode >> description [
+
+	^ description
+]
+
+{ #category : 'accessing' }
+ACPSessionMode >> description: aString [
+
+	description := aString
+]
+
 { #category : 'accessing' }
 ACPSessionMode >> modeId [
 
@@ -33,27 +56,4 @@ ACPSessionMode >> title [
 ACPSessionMode >> title: aString [
 
 	title := aString
-]
-
-{ #category : 'accessing' }
-ACPSessionMode >> description [
-
-	^ description
-]
-
-{ #category : 'accessing' }
-ACPSessionMode >> description: aString [
-
-	description := aString
-]
-
-{ #category : 'serialization' }
-ACPSessionMode >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'modeId' put: modeId.
-	json at: 'title' put: title.
-	description ifNotNil: [ json at: 'description' put: description ].
-	^ json
 ]

@@ -12,28 +12,16 @@ Class {
 	#tag : 'Content'
 }
 
-{ #category : 'accessing' }
-ACPResource >> uri [
+{ #category : 'serialization' }
+ACPResource >> asJSON [
 
-	^ uri
-]
-
-{ #category : 'accessing' }
-ACPResource >> uri: aString [
-
-	uri := aString
-]
-
-{ #category : 'accessing' }
-ACPResource >> text [
-
-	^ text
-]
-
-{ #category : 'accessing' }
-ACPResource >> text: aString [
-
-	text := aString
+	| json |
+	json := Dictionary new.
+	json at: 'uri' put: uri.
+	text ifNotNil: [ json at: 'text' put: text ].
+	blob ifNotNil: [ json at: 'blob' put: blob ].
+	mimeType ifNotNil: [ json at: 'mimeType' put: mimeType ].
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -60,14 +48,26 @@ ACPResource >> mimeType: aString [
 	mimeType := aString
 ]
 
-{ #category : 'serialization' }
-ACPResource >> asJSON [
+{ #category : 'accessing' }
+ACPResource >> text [
 
-	| json |
-	json := Dictionary new.
-	json at: 'uri' put: uri.
-	text ifNotNil: [ json at: 'text' put: text ].
-	blob ifNotNil: [ json at: 'blob' put: blob ].
-	mimeType ifNotNil: [ json at: 'mimeType' put: mimeType ].
-	^ json
+	^ text
+]
+
+{ #category : 'accessing' }
+ACPResource >> text: aString [
+
+	text := aString
+]
+
+{ #category : 'accessing' }
+ACPResource >> uri [
+
+	^ uri
+]
+
+{ #category : 'accessing' }
+ACPResource >> uri: aString [
+
+	uri := aString
 ]

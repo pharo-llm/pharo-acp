@@ -10,16 +10,14 @@ Class {
 	#tag : 'ToolCalls'
 }
 
-{ #category : 'accessing' }
-ACPLocation >> path [
+{ #category : 'serialization' }
+ACPLocation >> asJSON [
 
-	^ path
-]
-
-{ #category : 'accessing' }
-ACPLocation >> path: aString [
-
-	path := aString
+	| json |
+	json := Dictionary new.
+	json at: 'path' put: path.
+	line ifNotNil: [ json at: 'line' put: line ].
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -34,12 +32,14 @@ ACPLocation >> line: anInteger [
 	line := anInteger
 ]
 
-{ #category : 'serialization' }
-ACPLocation >> asJSON [
+{ #category : 'accessing' }
+ACPLocation >> path [
 
-	| json |
-	json := Dictionary new.
-	json at: 'path' put: path.
-	line ifNotNil: [ json at: 'line' put: line ].
-	^ json
+	^ path
+]
+
+{ #category : 'accessing' }
+ACPLocation >> path: aString [
+
+	path := aString
 ]

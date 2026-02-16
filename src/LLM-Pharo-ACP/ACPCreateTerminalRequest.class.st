@@ -14,21 +14,33 @@ Class {
 }
 
 { #category : 'accessing' }
-ACPCreateTerminalRequest >> method [
+ACPCreateTerminalRequest >> args [
 
-	^ 'terminal/create'
+	^ args ifNil: [ #() ]
 ]
 
 { #category : 'accessing' }
-ACPCreateTerminalRequest >> sessionId [
+ACPCreateTerminalRequest >> args: anArray [
 
-	^ sessionId
+	args := anArray
 ]
 
-{ #category : 'accessing' }
-ACPCreateTerminalRequest >> sessionId: aString [
+{ #category : 'serialization' }
+ACPCreateTerminalRequest >> asJSON [
 
-	sessionId := aString
+	| json params |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	json at: 'method' put: self method.
+	params := Dictionary new.
+	params at: 'sessionId' put: sessionId.
+	params at: 'command' put: command.
+	params at: 'args' put: self args.
+	cwd ifNotNil: [ params at: 'cwd' put: cwd ].
+	env ifNotNil: [ params at: 'env' put: env ].
+	json at: 'params' put: params.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -41,18 +53,6 @@ ACPCreateTerminalRequest >> command [
 ACPCreateTerminalRequest >> command: aString [
 
 	command := aString
-]
-
-{ #category : 'accessing' }
-ACPCreateTerminalRequest >> args [
-
-	^ args ifNil: [ #() ]
-]
-
-{ #category : 'accessing' }
-ACPCreateTerminalRequest >> args: anArray [
-
-	args := anArray
 ]
 
 { #category : 'accessing' }
@@ -85,20 +85,20 @@ ACPCreateTerminalRequest >> isRequest [
 	^ true
 ]
 
-{ #category : 'serialization' }
-ACPCreateTerminalRequest >> asJSON [
+{ #category : 'accessing' }
+ACPCreateTerminalRequest >> method [
 
-	| json params |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	json at: 'method' put: self method.
-	params := Dictionary new.
-	params at: 'sessionId' put: sessionId.
-	params at: 'command' put: command.
-	params at: 'args' put: self args.
-	cwd ifNotNil: [ params at: 'cwd' put: cwd ].
-	env ifNotNil: [ params at: 'env' put: env ].
-	json at: 'params' put: params.
-	^ json
+	^ 'terminal/create'
+]
+
+{ #category : 'accessing' }
+ACPCreateTerminalRequest >> sessionId [
+
+	^ sessionId
+]
+
+{ #category : 'accessing' }
+ACPCreateTerminalRequest >> sessionId: aString [
+
+	sessionId := aString
 ]

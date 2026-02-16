@@ -29,12 +29,52 @@ ACPConnectionTest >> tearDown [
 	super tearDown
 ]
 
+{ #category : 'tests - lifecycle' }
+ACPConnectionTest >> testConnectionClose [
+	"Test closing the connection"
+
+	connection close.
+
+	self assert: connection isClosed.
+	self assert: transport isClosed
+]
+
 { #category : 'tests - basic' }
 ACPConnectionTest >> testConnectionCreation [
 	"Test that connection can be created"
 
 	self assert: connection notNil.
 	self assert: connection transport equals: transport
+]
+
+{ #category : 'tests - lifecycle' }
+ACPConnectionTest >> testConnectionTimeout [
+	"Test connection timeout handling"
+
+	| request |
+	connection timeout: 1 second.
+	request := ACPInitializeRequest new protocolVersion: 1.
+
+	self
+		should: [
+			connection sendRequest: request.
+			2 seconds wait ]
+		raise: ACPTimeoutError
+		description: 'Should timeout after 1 second'
+]
+
+{ #category : 'tests - error handling' }
+ACPConnectionTest >> testInvalidMessageHandling [
+	"Test handling of invalid messages"
+
+	| invalidMessage |
+	invalidMessage := Dictionary new
+		                  at: 'invalid' put: 'data';
+		                  yourself.
+
+	self
+		should: [ connection handleIncoming: invalidMessage ]
+		raise: ACPProtocolError
 ]
 
 { #category : 'tests - basic' }
@@ -51,72 +91,21 @@ ACPConnectionTest >> testMessageIdGeneration [
 	self assert: id3 equals: 3
 ]
 
-{ #category : 'tests - sending' }
-ACPConnectionTest >> testSendRequest [
-	"Test sending a request message"
+{ #category : 'tests - error handling' }
+ACPConnectionTest >> testReceiveError [
+	"Test receiving an error response"
 
-	| request messageId |
-	request := ACPInitializeRequest new
-		           protocolVersion: 1;
-		           yourself.
-
-	messageId := connection sendRequest: request.
-
-	self assert: messageId notNil.
-	self assert: request id equals: messageId.
-	self assert: transport sentMessages size equals: 1.
-	self assert: transport sentMessages first equals: request
-]
-
-{ #category : 'tests - sending' }
-ACPConnectionTest >> testSendNotification [
-	"Test sending a notification message"
-
-	| notification |
-	notification := ACPCancelRequest new
-		                sessionId: 'sess_123';
-		                yourself.
-
-	connection sendNotification: notification.
-
-	self assert: notification id isNil.
-	self assert: transport sentMessages size equals: 1.
-	self assert: transport sentMessages first equals: notification
-]
-
-{ #category : 'tests - sending' }
-ACPConnectionTest >> testSendMultipleRequests [
-	"Test sending multiple requests maintains separate IDs"
-
-	| request1 request2 id1 id2 |
-	request1 := ACPInitializeRequest new protocolVersion: 1.
-	request2 := ACPPromptRequest new
-		            sessionId: 'sess_123';
-		            prompt: #(  ).
-
-	id1 := connection sendRequest: request1.
-	id2 := connection sendRequest: request2.
-
-	self assert: id1 ~= id2.
-	self assert: transport sentMessages size equals: 2
-]
-
-{ #category : 'tests - receiving' }
-ACPConnectionTest >> testReceiveResponse [
-	"Test receiving a response message"
-
-	| request response receivedResponse |
+	| request error |
 	request := ACPInitializeRequest new protocolVersion: 1.
 	connection sendRequest: request.
 
-	response := ACPInitializeResponse new
-		            protocolVersion: 1;
-		            id: request id;
-		            yourself.
+	error := ACPError new
+		         code: -32001;
+		         message: 'Authentication failed';
+		         id: request id;
+		         yourself.
 
-	receivedResponse := connection handleIncoming: response.
-
-	self assert: receivedResponse equals: response
+	self should: [ connection handleIncoming: error ] raise: ACPError
 ]
 
 { #category : 'tests - receiving' }
@@ -138,59 +127,70 @@ ACPConnectionTest >> testReceiveNotification [
 	self assert: received equals: notification
 ]
 
-{ #category : 'tests - error handling' }
-ACPConnectionTest >> testReceiveError [
-	"Test receiving an error response"
+{ #category : 'tests - receiving' }
+ACPConnectionTest >> testReceiveResponse [
+	"Test receiving a response message"
 
-	| request error |
+	| request response receivedResponse |
 	request := ACPInitializeRequest new protocolVersion: 1.
 	connection sendRequest: request.
 
-	error := ACPError new
-		         code: -32001;
-		         message: 'Authentication failed';
-		         id: request id;
-		         yourself.
+	response := ACPInitializeResponse new
+		            protocolVersion: 1;
+		            id: request id;
+		            yourself.
 
-	self should: [ connection handleIncoming: error ] raise: ACPError
+	receivedResponse := connection handleIncoming: response.
+
+	self assert: receivedResponse equals: response
 ]
 
-{ #category : 'tests - error handling' }
-ACPConnectionTest >> testInvalidMessageHandling [
-	"Test handling of invalid messages"
+{ #category : 'tests - sending' }
+ACPConnectionTest >> testSendMultipleRequests [
+	"Test sending multiple requests maintains separate IDs"
 
-	| invalidMessage |
-	invalidMessage := Dictionary new
-		                  at: 'invalid' put: 'data';
-		                  yourself.
+	| request1 request2 id1 id2 |
+	request1 := ACPInitializeRequest new protocolVersion: 1.
+	request2 := ACPPromptRequest new
+		            sessionId: 'sess_123';
+		            prompt: #(  ).
 
-	self
-		should: [ connection handleIncoming: invalidMessage ]
-		raise: ACPProtocolError
+	id1 := connection sendRequest: request1.
+	id2 := connection sendRequest: request2.
+
+	self assert: id1 ~= id2.
+	self assert: transport sentMessages size equals: 2
 ]
 
-{ #category : 'tests - lifecycle' }
-ACPConnectionTest >> testConnectionClose [
-	"Test closing the connection"
+{ #category : 'tests - sending' }
+ACPConnectionTest >> testSendNotification [
+	"Test sending a notification message"
 
-	connection close.
+	| notification |
+	notification := ACPCancelRequest new
+		                sessionId: 'sess_123';
+		                yourself.
 
-	self assert: connection isClosed.
-	self assert: transport isClosed
+	connection sendNotification: notification.
+
+	self assert: notification id isNil.
+	self assert: transport sentMessages size equals: 1.
+	self assert: transport sentMessages first equals: notification
 ]
 
-{ #category : 'tests - lifecycle' }
-ACPConnectionTest >> testConnectionTimeout [
-	"Test connection timeout handling"
+{ #category : 'tests - sending' }
+ACPConnectionTest >> testSendRequest [
+	"Test sending a request message"
 
-	| request |
-	connection timeout: 1 second.
-	request := ACPInitializeRequest new protocolVersion: 1.
+	| request messageId |
+	request := ACPInitializeRequest new
+		           protocolVersion: 1;
+		           yourself.
 
-	self
-		should: [
-			connection sendRequest: request.
-			2 seconds wait ]
-		raise: ACPTimeoutError
-		description: 'Should timeout after 1 second'
+	messageId := connection sendRequest: request.
+
+	self assert: messageId notNil.
+	self assert: request id equals: messageId.
+	self assert: transport sentMessages size equals: 1.
+	self assert: transport sentMessages first equals: request
 ]

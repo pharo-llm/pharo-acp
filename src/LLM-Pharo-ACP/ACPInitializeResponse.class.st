@@ -13,15 +13,15 @@ Class {
 }
 
 { #category : 'accessing' }
-ACPInitializeResponse >> protocolVersion [
+ACPInitializeResponse >> agentCapabilities [
 
-	^ protocolVersion
+	^ agentCapabilities
 ]
 
 { #category : 'accessing' }
-ACPInitializeResponse >> protocolVersion: anInteger [
+ACPInitializeResponse >> agentCapabilities: anACPAgentCapabilities [
 
-	protocolVersion := anInteger
+	agentCapabilities := anACPAgentCapabilities
 ]
 
 { #category : 'accessing' }
@@ -36,16 +36,21 @@ ACPInitializeResponse >> agentInfo: anACPAgentInfo [
 	agentInfo := anACPAgentInfo
 ]
 
-{ #category : 'accessing' }
-ACPInitializeResponse >> agentCapabilities [
+{ #category : 'serialization' }
+ACPInitializeResponse >> asJSON [
 
-	^ agentCapabilities
-]
-
-{ #category : 'accessing' }
-ACPInitializeResponse >> agentCapabilities: anACPAgentCapabilities [
-
-	agentCapabilities := anACPAgentCapabilities
+	| json result |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	result := Dictionary new.
+	result at: 'protocolVersion' put: protocolVersion.
+	agentInfo ifNotNil: [ result at: 'agentInfo' put: agentInfo asJSON ].
+	agentCapabilities ifNotNil: [
+		result at: 'agentCapabilities' put: agentCapabilities asJSON ].
+	result at: 'authenticationMethods' put: self authenticationMethods.
+	json at: 'result' put: result.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -66,19 +71,14 @@ ACPInitializeResponse >> isResponse [
 	^ true
 ]
 
-{ #category : 'serialization' }
-ACPInitializeResponse >> asJSON [
+{ #category : 'accessing' }
+ACPInitializeResponse >> protocolVersion [
 
-	| json result |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	result := Dictionary new.
-	result at: 'protocolVersion' put: protocolVersion.
-	agentInfo ifNotNil: [ result at: 'agentInfo' put: agentInfo asJSON ].
-	agentCapabilities ifNotNil: [
-		result at: 'agentCapabilities' put: agentCapabilities asJSON ].
-	result at: 'authenticationMethods' put: self authenticationMethods.
-	json at: 'result' put: result.
-	^ json
+	^ protocolVersion
+]
+
+{ #category : 'accessing' }
+ACPInitializeResponse >> protocolVersion: anInteger [
+
+	protocolVersion := anInteger
 ]

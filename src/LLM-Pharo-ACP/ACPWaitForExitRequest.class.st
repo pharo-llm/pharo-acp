@@ -11,6 +11,28 @@ Class {
 	#tag : 'Messages'
 }
 
+{ #category : 'serialization' }
+ACPWaitForExitRequest >> asJSON [
+
+	| json params |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	json at: 'method' put: self method.
+	params := Dictionary new.
+	params at: 'sessionId' put: sessionId.
+	params at: 'terminalId' put: terminalId.
+	timeout ifNotNil: [ params at: 'timeout' put: timeout asMilliSeconds ].
+	json at: 'params' put: params.
+	^ json
+]
+
+{ #category : 'testing' }
+ACPWaitForExitRequest >> isRequest [
+
+	^ true
+]
+
 { #category : 'accessing' }
 ACPWaitForExitRequest >> method [
 
@@ -51,26 +73,4 @@ ACPWaitForExitRequest >> timeout [
 ACPWaitForExitRequest >> timeout: aDuration [
 
 	timeout := aDuration
-]
-
-{ #category : 'testing' }
-ACPWaitForExitRequest >> isRequest [
-
-	^ true
-]
-
-{ #category : 'serialization' }
-ACPWaitForExitRequest >> asJSON [
-
-	| json params |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	json at: 'method' put: self method.
-	params := Dictionary new.
-	params at: 'sessionId' put: sessionId.
-	params at: 'terminalId' put: terminalId.
-	timeout ifNotNil: [ params at: 'timeout' put: timeout asMilliSeconds ].
-	json at: 'params' put: params.
-	^ json
 ]

@@ -11,6 +11,29 @@ Class {
 }
 
 { #category : 'accessing' }
+ACPTextContent >> annotations [
+
+	^ annotations
+]
+
+{ #category : 'accessing' }
+ACPTextContent >> annotations: aDictionary [
+
+	annotations := aDictionary
+]
+
+{ #category : 'serialization' }
+ACPTextContent >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	json at: 'type' put: 'text'.
+	json at: 'text' put: text.
+	annotations ifNotNil: [ json at: 'annotations' put: annotations ].
+	^ json
+]
+
+{ #category : 'accessing' }
 ACPTextContent >> text [
 
 	^ text
@@ -24,30 +47,7 @@ ACPTextContent >> text: aString [
 ]
 
 { #category : 'accessing' }
-ACPTextContent >> annotations [
-
-	^ annotations
-]
-
-{ #category : 'accessing' }
-ACPTextContent >> annotations: aDictionary [
-
-	annotations := aDictionary
-]
-
-{ #category : 'accessing' }
 ACPTextContent >> type [
 
 	^ 'text'
-]
-
-{ #category : 'serialization' }
-ACPTextContent >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'type' put: 'text'.
-	json at: 'text' put: text.
-	annotations ifNotNil: [ json at: 'annotations' put: annotations ].
-	^ json
 ]

@@ -10,6 +10,34 @@ Class {
 	#tag : 'Capabilities'
 }
 
+{ #category : 'serialization' }
+ACPClientCapabilities >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	fs ifNotNil: [ json at: 'fs' put: fs asJSON ].
+	terminal ifNotNil: [ json at: 'terminal' put: terminal asJSON ].
+	^ json
+]
+
+{ #category : 'testing' }
+ACPClientCapabilities >> canCreateTerminal [
+
+	^ terminal notNil and: [ terminal create ]
+]
+
+{ #category : 'testing' }
+ACPClientCapabilities >> canReadFiles [
+
+	^ fs notNil and: [ fs readTextFile ]
+]
+
+{ #category : 'testing' }
+ACPClientCapabilities >> canWriteFiles [
+
+	^ fs notNil and: [ fs writeTextFile ]
+]
+
 { #category : 'accessing' }
 ACPClientCapabilities >> fs [
 
@@ -32,32 +60,4 @@ ACPClientCapabilities >> terminal [
 ACPClientCapabilities >> terminal: anACPTerminalCapabilities [
 
 	terminal := anACPTerminalCapabilities
-]
-
-{ #category : 'testing' }
-ACPClientCapabilities >> canReadFiles [
-
-	^ fs notNil and: [ fs readTextFile ]
-]
-
-{ #category : 'testing' }
-ACPClientCapabilities >> canWriteFiles [
-
-	^ fs notNil and: [ fs writeTextFile ]
-]
-
-{ #category : 'testing' }
-ACPClientCapabilities >> canCreateTerminal [
-
-	^ terminal notNil and: [ terminal create ]
-]
-
-{ #category : 'serialization' }
-ACPClientCapabilities >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	fs ifNotNil: [ json at: 'fs' put: fs asJSON ].
-	terminal ifNotNil: [ json at: 'terminal' put: terminal asJSON ].
-	^ json
 ]

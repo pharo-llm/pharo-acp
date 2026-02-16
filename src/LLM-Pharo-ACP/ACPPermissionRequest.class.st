@@ -12,10 +12,58 @@ Class {
 	#tag : 'Messages'
 }
 
+{ #category : 'serialization' }
+ACPPermissionRequest >> asJSON [
+
+	| json params |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	json at: 'method' put: self method.
+	params := Dictionary new.
+	params at: 'sessionId' put: sessionId.
+	params at: 'title' put: title.
+	params at: 'description' put: description.
+	options ifNotNil: [
+		params at: 'options' put: (options collect: [ :o | o asJSON ]) ].
+	json at: 'params' put: params.
+	^ json
+]
+
+{ #category : 'accessing' }
+ACPPermissionRequest >> description [
+
+	^ description
+]
+
+{ #category : 'accessing' }
+ACPPermissionRequest >> description: aString [
+
+	description := aString
+]
+
+{ #category : 'testing' }
+ACPPermissionRequest >> isRequest [
+
+	^ true
+]
+
 { #category : 'accessing' }
 ACPPermissionRequest >> method [
 
 	^ 'session/request_permission'
+]
+
+{ #category : 'accessing' }
+ACPPermissionRequest >> options [
+
+	^ options
+]
+
+{ #category : 'accessing' }
+ACPPermissionRequest >> options: anArray [
+
+	options := anArray
 ]
 
 { #category : 'accessing' }
@@ -40,52 +88,4 @@ ACPPermissionRequest >> title [
 ACPPermissionRequest >> title: aString [
 
 	title := aString
-]
-
-{ #category : 'accessing' }
-ACPPermissionRequest >> description [
-
-	^ description
-]
-
-{ #category : 'accessing' }
-ACPPermissionRequest >> description: aString [
-
-	description := aString
-]
-
-{ #category : 'accessing' }
-ACPPermissionRequest >> options [
-
-	^ options
-]
-
-{ #category : 'accessing' }
-ACPPermissionRequest >> options: anArray [
-
-	options := anArray
-]
-
-{ #category : 'testing' }
-ACPPermissionRequest >> isRequest [
-
-	^ true
-]
-
-{ #category : 'serialization' }
-ACPPermissionRequest >> asJSON [
-
-	| json params |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	json at: 'method' put: self method.
-	params := Dictionary new.
-	params at: 'sessionId' put: sessionId.
-	params at: 'title' put: title.
-	params at: 'description' put: description.
-	options ifNotNil: [
-		params at: 'options' put: (options collect: [ :o | o asJSON ]) ].
-	json at: 'params' put: params.
-	^ json
 ]

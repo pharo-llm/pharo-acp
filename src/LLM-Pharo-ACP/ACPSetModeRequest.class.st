@@ -10,22 +10,30 @@ Class {
 	#tag : 'Messages'
 }
 
+{ #category : 'serialization' }
+ACPSetModeRequest >> asJSON [
+
+	| json params |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	json at: 'method' put: self method.
+	params := Dictionary new.
+	params at: 'sessionId' put: sessionId.
+	params at: 'modeId' put: modeId.
+	json at: 'params' put: params.
+	^ json
+]
+
+{ #category : 'testing' }
+ACPSetModeRequest >> isNotification [
+
+	^ true
+]
+
 { #category : 'accessing' }
 ACPSetModeRequest >> method [
 
 	^ 'session/set_mode'
-]
-
-{ #category : 'accessing' }
-ACPSetModeRequest >> sessionId [
-
-	^ sessionId
-]
-
-{ #category : 'accessing' }
-ACPSetModeRequest >> sessionId: aString [
-
-	sessionId := aString
 ]
 
 { #category : 'accessing' }
@@ -40,22 +48,14 @@ ACPSetModeRequest >> modeId: aString [
 	modeId := aString
 ]
 
-{ #category : 'testing' }
-ACPSetModeRequest >> isNotification [
+{ #category : 'accessing' }
+ACPSetModeRequest >> sessionId [
 
-	^ true
+	^ sessionId
 ]
 
-{ #category : 'serialization' }
-ACPSetModeRequest >> asJSON [
+{ #category : 'accessing' }
+ACPSetModeRequest >> sessionId: aString [
 
-	| json params |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	json at: 'method' put: self method.
-	params := Dictionary new.
-	params at: 'sessionId' put: sessionId.
-	params at: 'modeId' put: modeId.
-	json at: 'params' put: params.
-	^ json
+	sessionId := aString
 ]

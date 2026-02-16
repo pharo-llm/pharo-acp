@@ -10,6 +10,25 @@ Class {
 	#tag : 'Core'
 }
 
+{ #category : 'instance creation' }
+ACPAgentInfo class >> fromDictionary: aDictionary [
+
+	^ self new
+		  name: (aDictionary at: 'name');
+		  version: (aDictionary at: 'version' ifAbsent: [ nil ]);
+		  yourself
+]
+
+{ #category : 'serialization' }
+ACPAgentInfo >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	json at: 'name' put: name.
+	version ifNotNil: [ json at: 'version' put: version ].
+	^ json
+]
+
 { #category : 'accessing' }
 ACPAgentInfo >> name [
 
@@ -32,23 +51,4 @@ ACPAgentInfo >> version [
 ACPAgentInfo >> version: aString [
 
 	version := aString
-]
-
-{ #category : 'serialization' }
-ACPAgentInfo >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'name' put: name.
-	version ifNotNil: [ json at: 'version' put: version ].
-	^ json
-]
-
-{ #category : 'instance creation' }
-ACPAgentInfo class >> fromDictionary: aDictionary [
-
-	^ self new
-		  name: (aDictionary at: 'name');
-		  version: (aDictionary at: 'version' ifAbsent: [ nil ]);
-		  yourself
 ]

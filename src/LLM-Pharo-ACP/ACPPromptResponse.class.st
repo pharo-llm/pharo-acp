@@ -10,16 +10,19 @@ Class {
 	#tag : 'Messages'
 }
 
-{ #category : 'accessing' }
-ACPPromptResponse >> stopReason [
+{ #category : 'serialization' }
+ACPPromptResponse >> asJSON [
 
-	^ stopReason
-]
-
-{ #category : 'accessing' }
-ACPPromptResponse >> stopReason: aString [
-
-	stopReason := aString
+	| json result |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	result := Dictionary new.
+	result at: 'stopReason' put: stopReason.
+	content ifNotNil: [
+		result at: 'content' put: (content collect: [ :c | c asJSON ]) ].
+	json at: 'result' put: result.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -40,17 +43,14 @@ ACPPromptResponse >> isResponse [
 	^ true
 ]
 
-{ #category : 'serialization' }
-ACPPromptResponse >> asJSON [
+{ #category : 'accessing' }
+ACPPromptResponse >> stopReason [
 
-	| json result |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	result := Dictionary new.
-	result at: 'stopReason' put: stopReason.
-	content ifNotNil: [
-		result at: 'content' put: (content collect: [ :c | c asJSON ]) ].
-	json at: 'result' put: result.
-	^ json
+	^ stopReason
+]
+
+{ #category : 'accessing' }
+ACPPromptResponse >> stopReason: aString [
+
+	stopReason := aString
 ]

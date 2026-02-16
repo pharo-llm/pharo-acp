@@ -10,6 +10,16 @@ Class {
 	#tag : 'Core'
 }
 
+{ #category : 'serialization' }
+ACPClientInfo >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	json at: 'name' put: name.
+	version ifNotNil: [ json at: 'version' put: version ].
+	^ json
+]
+
 { #category : 'accessing' }
 ACPClientInfo >> name [
 
@@ -32,14 +42,4 @@ ACPClientInfo >> version [
 ACPClientInfo >> version: aString [
 
 	version := aString
-]
-
-{ #category : 'serialization' }
-ACPClientInfo >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'name' put: name.
-	version ifNotNil: [ json at: 'version' put: version ].
-	^ json
 ]

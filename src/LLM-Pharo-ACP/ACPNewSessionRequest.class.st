@@ -10,10 +10,19 @@ Class {
 	#tag : 'Messages'
 }
 
-{ #category : 'accessing' }
-ACPNewSessionRequest >> method [
+{ #category : 'serialization' }
+ACPNewSessionRequest >> asJSON [
 
-	^ 'session/new'
+	| json params |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	json at: 'method' put: self method.
+	params := Dictionary new.
+	params at: 'cwd' put: cwd.
+	params at: 'mcpServers' put: self mcpServers.
+	json at: 'params' put: params.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -28,6 +37,12 @@ ACPNewSessionRequest >> cwd: aString [
 	cwd := aString
 ]
 
+{ #category : 'testing' }
+ACPNewSessionRequest >> isRequest [
+
+	^ true
+]
+
 { #category : 'accessing' }
 ACPNewSessionRequest >> mcpServers [
 
@@ -40,23 +55,8 @@ ACPNewSessionRequest >> mcpServers: anArray [
 	mcpServers := anArray
 ]
 
-{ #category : 'testing' }
-ACPNewSessionRequest >> isRequest [
+{ #category : 'accessing' }
+ACPNewSessionRequest >> method [
 
-	^ true
-]
-
-{ #category : 'serialization' }
-ACPNewSessionRequest >> asJSON [
-
-	| json params |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	json at: 'method' put: self method.
-	params := Dictionary new.
-	params at: 'cwd' put: cwd.
-	params at: 'mcpServers' put: self mcpServers.
-	json at: 'params' put: params.
-	^ json
+	^ 'session/new'
 ]

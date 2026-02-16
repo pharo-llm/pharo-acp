@@ -14,6 +14,56 @@ Class {
 	#tag : 'Core'
 }
 
+{ #category : 'accessing' }
+ACPClient >> agentCapabilities [
+
+	^ agentCapabilities
+]
+
+{ #category : 'private' }
+ACPClient >> buildNegotiatedCapabilities [
+	"Build the negotiated capabilities"
+
+	| clientCaps |
+	clientCaps := ACPClientCapabilities new
+		              fs: (ACPFSCapabilities new
+				               readTextFile: true;
+				               writeTextFile: true;
+				               yourself);
+		              terminal: (ACPTerminalCapabilities new
+				               create: true;
+				               output: true;
+				               waitForExit: true;
+				               kill: true;
+				               release: true;
+				               yourself);
+		              yourself.
+
+	^ ACPCapabilities negotiate: clientCaps with: agentCapabilities
+]
+
+{ #category : 'accessing' }
+ACPClient >> capabilities [
+
+	^ capabilities
+]
+
+{ #category : 'accessing' }
+ACPClient >> connection [
+
+	^ connection
+]
+
+{ #category : 'lifecycle' }
+ACPClient >> disconnect [
+	"Disconnect the client"
+
+	sessions valuesDo: [ :session | session close ].
+	sessions removeAll.
+	connection ifNotNil: [ connection close ].
+	initialized := false
+]
+
 { #category : 'initialization' }
 ACPClient >> initialize [
 
@@ -24,36 +74,6 @@ ACPClient >> initialize [
 		              name: 'Pharo ACP Client';
 		              version: '1.0.0';
 		              yourself
-]
-
-{ #category : 'accessing' }
-ACPClient >> connection [
-
-	^ connection
-]
-
-{ #category : 'accessing' }
-ACPClient >> sessions [
-
-	^ sessions
-]
-
-{ #category : 'accessing' }
-ACPClient >> capabilities [
-
-	^ capabilities
-]
-
-{ #category : 'accessing' }
-ACPClient >> agentCapabilities [
-
-	^ agentCapabilities
-]
-
-{ #category : 'testing' }
-ACPClient >> isInitialized [
-
-	^ initialized ifNil: [ false ]
 ]
 
 { #category : 'initialization' }
@@ -80,30 +100,10 @@ ACPClient >> initialize: aTransport [
 	^ response
 ]
 
-{ #category : 'sessions' }
-ACPClient >> newSession: aCwd [
-	"Create a new session with the given working directory"
+{ #category : 'testing' }
+ACPClient >> isInitialized [
 
-	| request response session cwdString |
-	cwdString := aCwd isString
-		             ifTrue: [ aCwd ]
-		             ifFalse: [ aCwd pathString ].
-
-	request := ACPNewSessionRequest new
-		           cwd: cwdString;
-		           mcpServers: #();
-		           yourself.
-
-	response := connection sendRequestAndWait: request.
-
-	session := ACPSession new
-		           sessionId: response sessionId;
-		           cwd: aCwd;
-		           connection: connection;
-		           yourself.
-
-	sessions at: session sessionId put: session.
-	^ session
+	^ initialized ifNil: [ false ]
 ]
 
 { #category : 'sessions' }
@@ -132,6 +132,32 @@ ACPClient >> loadSession: aSessionId mcpServers: mcpServers [
 					h do: [ :entry | session history add: entry ] ] ] ].
 
 	sessions at: aSessionId put: session.
+	^ session
+]
+
+{ #category : 'sessions' }
+ACPClient >> newSession: aCwd [
+	"Create a new session with the given working directory"
+
+	| request response session cwdString |
+	cwdString := aCwd isString
+		             ifTrue: [ aCwd ]
+		             ifFalse: [ aCwd pathString ].
+
+	request := ACPNewSessionRequest new
+		           cwd: cwdString;
+		           mcpServers: #();
+		           yourself.
+
+	response := connection sendRequestAndWait: request.
+
+	session := ACPSession new
+		           sessionId: response sessionId;
+		           cwd: aCwd;
+		           connection: connection;
+		           yourself.
+
+	sessions at: session sessionId put: session.
 	^ session
 ]
 
@@ -175,6 +201,23 @@ ACPClient >> readFile: aFileReference inSession: aSession startLine: startLine l
 	^ response result at: 'content'
 ]
 
+{ #category : 'accessing' }
+ACPClient >> sessions [
+
+	^ sessions
+]
+
+{ #category : 'private' }
+ACPClient >> validateSession: aSession [
+	"Validate that a session belongs to this client"
+
+	(sessions includesKey: aSession sessionId) ifFalse: [
+		ACPError new
+			code: -32003;
+			message: 'Invalid session: ' , aSession sessionId asString;
+			signal ]
+]
+
 { #category : 'file operations' }
 ACPClient >> writeFile: aFileReference content: aString inSession: aSession [
 	"Write content to a file in the context of a session"
@@ -192,47 +235,4 @@ ACPClient >> writeFile: aFileReference content: aString inSession: aSession [
 		           yourself.
 
 	connection sendRequestAndWait: request
-]
-
-{ #category : 'lifecycle' }
-ACPClient >> disconnect [
-	"Disconnect the client"
-
-	sessions valuesDo: [ :session | session close ].
-	sessions removeAll.
-	connection ifNotNil: [ connection close ].
-	initialized := false
-]
-
-{ #category : 'private' }
-ACPClient >> buildNegotiatedCapabilities [
-	"Build the negotiated capabilities"
-
-	| clientCaps |
-	clientCaps := ACPClientCapabilities new
-		              fs: (ACPFSCapabilities new
-				               readTextFile: true;
-				               writeTextFile: true;
-				               yourself);
-		              terminal: (ACPTerminalCapabilities new
-				               create: true;
-				               output: true;
-				               waitForExit: true;
-				               kill: true;
-				               release: true;
-				               yourself);
-		              yourself.
-
-	^ ACPCapabilities negotiate: clientCaps with: agentCapabilities
-]
-
-{ #category : 'private' }
-ACPClient >> validateSession: aSession [
-	"Validate that a session belongs to this client"
-
-	(sessions includesKey: aSession sessionId) ifFalse: [
-		ACPError new
-			code: -32003;
-			message: 'Invalid session: ' , aSession sessionId asString;
-			signal ]
 ]

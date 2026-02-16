@@ -10,6 +10,16 @@ Class {
 	#tag : 'Capabilities'
 }
 
+{ #category : 'serialization' }
+ACPFSCapabilities >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	json at: 'readTextFile' put: self readTextFile.
+	json at: 'writeTextFile' put: self writeTextFile.
+	^ json
+]
+
 { #category : 'accessing' }
 ACPFSCapabilities >> readTextFile [
 
@@ -32,14 +42,4 @@ ACPFSCapabilities >> writeTextFile [
 ACPFSCapabilities >> writeTextFile: aBoolean [
 
 	writeTextFile := aBoolean
-]
-
-{ #category : 'serialization' }
-ACPFSCapabilities >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'readTextFile' put: self readTextFile.
-	json at: 'writeTextFile' put: self writeTextFile.
-	^ json
 ]

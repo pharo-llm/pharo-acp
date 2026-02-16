@@ -9,6 +9,15 @@ Class {
 	#tag : 'Capabilities'
 }
 
+{ #category : 'serialization' }
+ACPMCPCapabilities >> asJSON [
+
+	| json |
+	json := Dictionary new.
+	json at: 'supportedTransports' put: supportedTransports asArray.
+	^ json
+]
+
 { #category : 'accessing' }
 ACPMCPCapabilities >> supportedTransports [
 
@@ -27,13 +36,4 @@ ACPMCPCapabilities >> supportedTransports: anArray [
 ACPMCPCapabilities >> supports: aTransportString [
 
 	^ supportedTransports includes: aTransportString
-]
-
-{ #category : 'serialization' }
-ACPMCPCapabilities >> asJSON [
-
-	| json |
-	json := Dictionary new.
-	json at: 'supportedTransports' put: supportedTransports asArray.
-	^ json
 ]

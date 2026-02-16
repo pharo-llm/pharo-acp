@@ -11,34 +11,20 @@ Class {
 	#tag : 'Messages'
 }
 
-{ #category : 'accessing' }
-ACPWriteFileRequest >> method [
+{ #category : 'serialization' }
+ACPWriteFileRequest >> asJSON [
 
-	^ 'fs/write_text_file'
-]
-
-{ #category : 'accessing' }
-ACPWriteFileRequest >> sessionId [
-
-	^ sessionId
-]
-
-{ #category : 'accessing' }
-ACPWriteFileRequest >> sessionId: aString [
-
-	sessionId := aString
-]
-
-{ #category : 'accessing' }
-ACPWriteFileRequest >> path [
-
-	^ path
-]
-
-{ #category : 'accessing' }
-ACPWriteFileRequest >> path: aString [
-
-	path := aString
+	| json params |
+	json := Dictionary new.
+	json at: 'jsonrpc' put: '2.0'.
+	id ifNotNil: [ json at: 'id' put: id ].
+	json at: 'method' put: self method.
+	params := Dictionary new.
+	params at: 'sessionId' put: sessionId.
+	params at: 'path' put: path.
+	params at: 'content' put: content.
+	json at: 'params' put: params.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -59,18 +45,32 @@ ACPWriteFileRequest >> isRequest [
 	^ true
 ]
 
-{ #category : 'serialization' }
-ACPWriteFileRequest >> asJSON [
+{ #category : 'accessing' }
+ACPWriteFileRequest >> method [
 
-	| json params |
-	json := Dictionary new.
-	json at: 'jsonrpc' put: '2.0'.
-	id ifNotNil: [ json at: 'id' put: id ].
-	json at: 'method' put: self method.
-	params := Dictionary new.
-	params at: 'sessionId' put: sessionId.
-	params at: 'path' put: path.
-	params at: 'content' put: content.
-	json at: 'params' put: params.
-	^ json
+	^ 'fs/write_text_file'
+]
+
+{ #category : 'accessing' }
+ACPWriteFileRequest >> path [
+
+	^ path
+]
+
+{ #category : 'accessing' }
+ACPWriteFileRequest >> path: aString [
+
+	path := aString
+]
+
+{ #category : 'accessing' }
+ACPWriteFileRequest >> sessionId [
+
+	^ sessionId
+]
+
+{ #category : 'accessing' }
+ACPWriteFileRequest >> sessionId: aString [
+
+	sessionId := aString
 ]

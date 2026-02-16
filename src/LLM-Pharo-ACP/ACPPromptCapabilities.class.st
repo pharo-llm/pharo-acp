@@ -11,16 +11,15 @@ Class {
 	#tag : 'Capabilities'
 }
 
-{ #category : 'accessing' }
-ACPPromptCapabilities >> image [
+{ #category : 'serialization' }
+ACPPromptCapabilities >> asJSON [
 
-	^ image ifNil: [ false ]
-]
-
-{ #category : 'accessing' }
-ACPPromptCapabilities >> image: aBoolean [
-
-	image := aBoolean
+	| json |
+	json := Dictionary new.
+	json at: 'image' put: self image.
+	json at: 'audio' put: self audio.
+	json at: 'embeddedContext' put: self embeddedContext.
+	^ json
 ]
 
 { #category : 'accessing' }
@@ -47,10 +46,16 @@ ACPPromptCapabilities >> embeddedContext: aBoolean [
 	embeddedContext := aBoolean
 ]
 
-{ #category : 'testing' }
-ACPPromptCapabilities >> supportsImage [
+{ #category : 'accessing' }
+ACPPromptCapabilities >> image [
 
-	^ self image
+	^ image ifNil: [ false ]
+]
+
+{ #category : 'accessing' }
+ACPPromptCapabilities >> image: aBoolean [
+
+	image := aBoolean
 ]
 
 { #category : 'testing' }
@@ -65,13 +70,8 @@ ACPPromptCapabilities >> supportsEmbeddedContext [
 	^ self embeddedContext
 ]
 
-{ #category : 'serialization' }
-ACPPromptCapabilities >> asJSON [
+{ #category : 'testing' }
+ACPPromptCapabilities >> supportsImage [
 
-	| json |
-	json := Dictionary new.
-	json at: 'image' put: self image.
-	json at: 'audio' put: self audio.
-	json at: 'embeddedContext' put: self embeddedContext.
-	^ json
+	^ self image
 ]
