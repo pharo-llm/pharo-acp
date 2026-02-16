@@ -298,10 +298,11 @@ ACPMockTransport >> responseQueue [
 { #category : 'operations' }
 ACPMockTransport >> send: aMessage [
 
+	| response |
 	sentMessages add: aMessage.
-	(autoRespond and: [ aMessage isKindOf: ACPMessage ]) ifTrue: [
-		aMessage id ifNotNil: [
-			responseQueue add: (self generateResponseFor: aMessage) ] ]
+	(autoRespond and: [ aMessage isKindOf: ACPMessage ]) ifFalse: [ ^ self ].
+	response := self generateResponseFor: aMessage.
+	aMessage id ifNotNil: [ response ifNotNil: [ responseQueue add: response ] ]
 ]
 
 { #category : 'accessing' }
