@@ -156,8 +156,10 @@ ACPConnection >> processResponseQueue [
 { #category : 'sending' }
 ACPConnection >> sendNotification: aNotification [
 	"Send a notification message (no ID assigned)"
-
-	transport send: aNotification
+	
+	transport send: aNotification.
+	(transport respondsTo: #hasResponse) ifTrue: [
+		transport hasResponse ifTrue: [ self processResponseQueue ] ]
 ]
 
 { #category : 'sending' }

@@ -216,6 +216,18 @@ ACPIntegrationTest >> testPromptWithToolCalls [
 	self assert: (toolCalls anySatisfy: [ :tc | tc kind = #edit ])
 ]
 
+{ #category : 'tests - terminal operations' }
+ACPIntegrationTest >> testSessionModeChanges [
+
+	| modeChanges |
+	modeChanges := OrderedCollection new. "Track mode changes"
+	session onUpdate: [ :update | update type = 'current_mode_update' ifTrue: [ modeChanges add: update modeId ] ]. "Change to architect mode"
+	session setMode: 'architect'. "Change to code mode"
+	session setMode: 'code'. "Verify mode changes were tracked"
+	self assert: (modeChanges includes: 'architect').
+	self assert: (modeChanges includes: 'code').
+]
+
 { #category : 'tests - session loading' }
 ACPIntegrationTest >> testSessionPersistenceAndLoading [
 	"Test saving and loading session state"
